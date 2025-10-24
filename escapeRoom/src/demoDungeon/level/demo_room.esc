@@ -8,12 +8,38 @@ escape_room:
 
     rooms:
         entrance:
-            description: "The entrance hall"
-            x: 1
-            y: 1
+            description: "The grand entrance hall"
+            x: 2
+            y: 2
+            width: 12
+            height: 10
+            items: [golden_key, rusty_key, scroll]
+            connections: [treasure_room, guard_room, secret_chamber]
+        
+        treasure_room:
+            description: "A room with a mysterious chest"
+            x: 18
+            y: 2
+            width: 10
+            height: 8
+            connections: [entrance]
+        
+        guard_room:
+            description: "A room guarded by a stone statue"
+            x: 2
+            y: 16
+            width: 10
+            height: 10
+            connections: [entrance, secret_chamber]
+            locked_by: golden_key
+        
+        secret_chamber:
+            description: "A hidden chamber with ancient secrets"
+            x: 18
+            y: 16
             width: 8
             height: 8
-            items: [key, scroll]
+            connections: [entrance, guard_room]
 
     quizzes:
         treasure_quiz:
@@ -33,10 +59,16 @@ escape_room:
             attached_to: guardian
 
     items:
-        key:
-            description: "A rusty key"
+        golden_key:
+            description: "A shiny golden key that unlocks the guard room"
             type: "key"
-            texture: "items/key/small_key"
+            texture: "items/key/big_key.png"
+            visible: true
+
+        rusty_key:
+            description: "A rusty old key"
+            type: "key"
+            texture: "items/key/small_key.png"
             visible: true
 
         scroll:

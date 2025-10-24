@@ -79,8 +79,22 @@ public class DSLEntitySpawner {
             return null;
         }
 
-        // Create item (use berry as placeholder for all items for now)
-        return WorldItemBuilder.buildWorldItem(new ItemResourceBerry(), position);
+        // Create the appropriate item based on ID or type
+        contrib.item.Item item;
+
+        if (itemId.toLowerCase().contains("key")) {
+            // Create an EscapeRoomKey for key items
+            item = new EscapeRoomKey(
+                    itemId,
+                    itemId.replace("_", " ").toUpperCase(),
+                    itemDef.description != null ? itemDef.description : "A key that unlocks something.",
+                    itemDef.texture != null ? itemDef.texture : "items/key/small_key.png");
+        } else {
+            // Use berry as placeholder for other items
+            item = new ItemResourceBerry();
+        }
+
+        return WorldItemBuilder.buildWorldItem(item, position);
     }
 
     /**

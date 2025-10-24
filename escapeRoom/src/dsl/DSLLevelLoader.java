@@ -1,8 +1,23 @@
 package dsl;
 
+import core.Entity;
+import core.Game;
 import core.level.DungeonLevel;
+import core.level.Tile;
+import core.level.elements.tile.DoorTile;
 import core.level.utils.DesignLabel;
 import core.level.utils.LevelElement;
+import core.utils.Point;
+import core.components.PositionComponent;
+import core.components.DrawComponent;
+import contrib.components.CollideComponent;
+import core.utils.components.draw.animation.Animation;
+import core.utils.components.path.SimpleIPath;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Converts a parsed EscapeRoomDefinition into a playable DungeonLevel.
@@ -15,6 +30,26 @@ import core.level.utils.LevelElement;
  */
 public class DSLLevelLoader {
 
+    // Store door positions for entity spawning
+    private static final List<DoorInfo> doorPositions = new ArrayList<>();
+
+    /**
+     * Helper class to store door information.
+     */
+    private static class DoorInfo {
+        Point position;
+        String roomId;
+        String requiredItemId; // null if unlocked
+        String direction; // "top", "bottom", "left", "right"
+
+        DoorInfo(Point position, String roomId, String requiredItemId, String direction) {
+            this.position = position;
+            this.roomId = roomId;
+            this.requiredItemId = requiredItemId;
+            this.direction = direction;
+        }
+    }
+
     /**
      * Creates a DungeonLevel from the parsed DSL definition.
      * 
@@ -22,6 +57,10 @@ public class DSLLevelLoader {
      * @return A playable dungeon level
      */
     public static DungeonLevel createLevel(EscapeRoomDefinition definition) {
+        // Clear previous door data
+        doorPositions.clear();
+        DoorManager.clear();
+
         // Generate the level layout from room definitions
         LevelElement[][] layout = generateLayout(definition);
 
@@ -31,6 +70,98 @@ public class DSLLevelLoader {
         System.out.println("✓ Level created: " + definition.getTitle());
 
         return level;
+    }
+
+    /**
+     * Spawns door entities in the game world after the level is loaded.
+     * Must be called after Game.currentLevel() is set.
+     * 
+     * @param definition The escape room definition with room/door data
+     */
+    public static void spawnDoorEntities(EscapeRoomDefinition definition) {
+        System.out.println("=== Spawning Door Entities ===");
+
+        var levelOpt = Game.currentLevel();
+        if (levelOpt.isEmpty()) {
+            System.err.println("  ✗ No level loaded, cannot spawn doors");
+            return;
+        }
+
+        DungeonLevel level = (DungeonLevel) levelOpt.get();
+
+        // Build a map of rooms that require keys
+        Map<String, String> roomLocks = new HashMap<>();
+        if (definition.rooms != null) {
+            for (var entry : definition.rooms.entrySet()) {
+                String roomId = entry.getKey();
+                Room room = entry.getValue();
+                if (room.lockedBy != null && !room.lockedBy.isEmpty()) {
+                    roomLocks.put(roomId, room.lockedBy);
+                    System.out.println("  🔒 Room '" + roomId + "' requires: " + room.lockedBy);
+                }
+            }
+        }
+
+        // Spawn door entities at marked positions
+        int doorsSpawned = 0;
+        for (DoorInfo doorInfo : doorPositions) {
+            // Get the actual door tile from the level
+            Tile tile = level.tileAt(doorInfo.position).orElse(null);
+            if (tile instanceof DoorTile doorTile) {
+                // Create list to track wall entities for this door
+                List<Entity> wallEntities = new ArrayList<>();
+
+                // Spawn wall entities on both sides to block the corridor
+                // Spawn walls to fully block corridor (extend one extra tile on each side)
+                for (int i = -2; i <= 2; i++) {
+                    if (i == 0)
+                        continue; // Skip center (that's where the door is)
+
+                    Point wallPos;
+                    // Calculate wall position based on door direction
+                    if (doorInfo.direction.equals("left") || doorInfo.direction.equals("right")) {
+                        // Horizontal door - walls go vertically (above and below)
+                        wallPos = doorInfo.position.translate(0, i);
+                    } else {
+                        // Vertical door - walls go horizontally (left and right)
+                        wallPos = doorInfo.position.translate(i, 0);
+                    }
+
+                    // Create wall entity to block the corridor with visible texture
+                    Entity wallEntity = new Entity("DoorWall");
+                    wallEntity.add(new PositionComponent(wallPos));
+                    wallEntity.add(new CollideComponent());
+                    wallEntity.add(new DrawComponent(new Animation(new SimpleIPath("dungeon/default/wall/side.png"))));
+
+                    Game.add(wallEntity);
+                    wallEntities.add(wallEntity);
+                }
+
+                // Spawn the door entity at the center position
+                Entity doorEntity;
+                if (doorInfo.requiredItemId != null) {
+                    // Locked door
+                    DoorManager.lockDoor(doorTile, doorInfo.requiredItemId);
+                    doorEntity = DoorEntityFactory.createLockedDoorIndicator(
+                            doorTile,
+                            doorInfo.requiredItemId,
+                            doorInfo.position,
+                            doorInfo.direction,
+                            wallEntities);
+                } else {
+                    // Unlocked door - keep walls
+                    doorEntity = DoorEntityFactory.createUnlockedDoorIndicator(
+                            doorTile,
+                            doorInfo.position,
+                            doorInfo.direction);
+                }
+                Game.add(doorEntity);
+
+                doorsSpawned++;
+            }
+        }
+
+        System.out.println("  ✓ Spawned " + doorsSpawned + " door entities with corridor walls");
     }
 
     /**
@@ -118,7 +249,7 @@ public class DSLLevelLoader {
             for (String targetRoomId : room.connections) {
                 Room targetRoom = definition.rooms.get(targetRoomId);
                 if (targetRoom != null) {
-                    createCorridor(layout, room, targetRoom);
+                    createCorridor(layout, roomId, room, targetRoomId, targetRoom);
                     System.out.println("  ✓ Connected '" + roomId + "' to '" + targetRoomId + "'");
                 }
             }
@@ -128,7 +259,8 @@ public class DSLLevelLoader {
     /**
      * Creates a corridor between two rooms.
      */
-    private static void createCorridor(LevelElement[][] layout, Room room1, Room room2) {
+    private static void createCorridor(LevelElement[][] layout, String room1Id, Room room1, String room2Id,
+            Room room2) {
         // Calculate center points of each room
         int x1 = room1.x + room1.width / 2;
         int y1 = room1.y + room1.height / 2;
@@ -137,9 +269,6 @@ public class DSLLevelLoader {
 
         // Corridor width (2-3 tiles)
         int corridorWidth = 3;
-
-        // Mark door position at room1's edge
-        markDoorInWall(layout, room1, x1, y1);
 
         // Create L-shaped corridor (horizontal then vertical) with width
         // Horizontal segment
@@ -166,44 +295,91 @@ public class DSLLevelLoader {
             }
         }
 
-        // Mark door position at room2's edge
-        markDoorInWall(layout, room2, x2, y2);
+        // Mark door positions where corridors meet room walls
+        // For room1: check horizontal corridor approaching from the direction of room2
+        if (x2 < x1) {
+            // Corridor comes from the left
+            markDoorInWall(layout, room1Id, room1, room1.x - 1, y1);
+        } else {
+            // Corridor comes from the right
+            markDoorInWall(layout, room1Id, room1, room1.x + room1.width, y1);
+        }
+
+        // For room2: check vertical corridor approaching from the direction of room1
+        if (y1 < y2) {
+            // Corridor comes from above
+            markDoorInWall(layout, room2Id, room2, x2, room2.y - 1);
+        } else {
+            // Corridor comes from below
+            markDoorInWall(layout, room2Id, room2, x2, room2.y + room2.height);
+        }
     }
 
     /**
-     * Marks a door position in the wall of a room.
+     * Marks a door position in the wall of a room and tracks it for entity
+     * spawning.
      */
-    private static void markDoorInWall(LevelElement[][] layout, Room room, int corridorX, int corridorY) {
+    private static void markDoorInWall(LevelElement[][] layout, String roomId, Room room, int corridorX,
+            int corridorY) {
         // Find where the corridor intersects the room's wall
         int roomLeft = room.x;
         int roomRight = room.x + room.width - 1;
         int roomTop = room.y;
         int roomBottom = room.y + room.height - 1;
 
+        Point doorPos = null;
+        String direction = null;
+
         // Check each wall and place door where corridor connects
-        // Left wall
+        // Left wall (corridor approaching from the west)
         if (corridorX < roomLeft && corridorY >= roomTop && corridorY <= roomBottom) {
             if (roomLeft < layout[0].length && corridorY < layout.length) {
                 layout[corridorY][roomLeft] = LevelElement.DOOR;
+                doorPos = new Point(roomLeft, corridorY);
+                direction = "left"; // Door faces left (player comes from left/west)
+                System.out.println(
+                        "  🚪 Marked door at LEFT wall of '" + roomId + "' at (" + roomLeft + "," + corridorY + ")");
             }
         }
-        // Right wall
+        // Right wall (corridor approaching from the east)
         else if (corridorX > roomRight && corridorY >= roomTop && corridorY <= roomBottom) {
             if (roomRight < layout[0].length && corridorY < layout.length) {
                 layout[corridorY][roomRight] = LevelElement.DOOR;
+                doorPos = new Point(roomRight, corridorY);
+                direction = "right"; // Door faces right (player comes from right/east)
+                System.out.println(
+                        "  🚪 Marked door at RIGHT wall of '" + roomId + "' at (" + roomRight + "," + corridorY + ")");
             }
         }
-        // Top wall
+        // Top wall (corridor approaching from the north)
         else if (corridorY < roomTop && corridorX >= roomLeft && corridorX <= roomRight) {
             if (corridorX < layout[0].length && roomTop < layout.length) {
                 layout[roomTop][corridorX] = LevelElement.DOOR;
+                doorPos = new Point(corridorX, roomTop);
+                direction = "top"; // Door faces top (player comes from top/north)
+                System.out.println(
+                        "  🚪 Marked door at TOP wall of '" + roomId + "' at (" + corridorX + "," + roomTop + ")");
             }
         }
-        // Bottom wall
+        // Bottom wall (corridor approaching from the south)
         else if (corridorY > roomBottom && corridorX >= roomLeft && corridorX <= roomRight) {
             if (corridorX < layout[0].length && roomBottom < layout.length) {
                 layout[roomBottom][corridorX] = LevelElement.DOOR;
+                doorPos = new Point(corridorX, roomBottom);
+                direction = "bottom"; // Door faces bottom (player comes from bottom/south)
+                System.out.println("  🚪 Marked door at BOTTOM wall of '" + roomId + "' at (" + corridorX + ","
+                        + roomBottom + ")");
             }
+        }
+
+        // Track door position for entity spawning
+        if (doorPos != null && direction != null) {
+            // Check if this room requires a key
+            String requiredItem = room.lockedBy;
+            doorPositions.add(new DoorInfo(doorPos, roomId, requiredItem, direction));
+        } else {
+            System.out.println("  ⚠️  WARNING: Could not mark door for room '" + roomId +
+                    "' at corridor (" + corridorX + "," + corridorY + ")");
         }
     }
 

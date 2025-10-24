@@ -1,8 +1,10 @@
 package dsl;
 
 import contrib.components.InteractionComponent;
+import contrib.components.InventoryComponent;
 import contrib.hud.DialogUtils;
 import core.Entity;
+import core.Game;
 import core.level.elements.tile.DoorTile;
 import core.utils.Point;
 
@@ -16,6 +18,7 @@ public class DoorManager {
 
     private static final Map<String, DoorTile> doors = new HashMap<>();
     private static final Map<DoorTile, String> lockedDoors = new HashMap<>();
+    private static final Map<DoorTile, Entity> doorEntities = new HashMap<>();
 
     /**
      * Register a door with an ID.
@@ -34,6 +37,13 @@ public class DoorManager {
     }
 
     /**
+     * Register a door entity for visual representation.
+     */
+    public static void registerDoorEntity(DoorTile door, Entity doorEntity) {
+        doorEntities.put(door, doorEntity);
+    }
+
+    /**
      * Create an interaction entity for a locked door.
      */
     public static Entity createDoorInteraction(DoorTile door, String requiredItemId, Point position) {
@@ -43,15 +53,23 @@ public class DoorManager {
                 2.0f, // interaction radius
                 true, // repeatable
                 (entity, hero) -> {
-                    // TODO: Check if hero has the required item in inventory
-                    // For now, just show a message
+                    // Check if door is already open
                     if (door.isOpen()) {
                         DialogUtils.showTextPopup(
                                 "The door is already open.",
                                 "Door");
+                        return;
+                    }
+
+                    // Try to unlock with inventory
+                    if (tryUnlockWithInventory(door, hero, requiredItemId)) {
+                        DialogUtils.showTextPopup(
+                                "🔓 You unlocked the door with your key!",
+                                "Success",
+                                () -> updateDoorVisuals(door));
                     } else {
                         DialogUtils.showTextPopup(
-                                "This door is locked. You need: " + requiredItemId,
+                                "🔒 This door is locked.\n\nYou need: " + requiredItemId,
                                 "Locked Door");
                     }
                 }));
@@ -60,7 +78,32 @@ public class DoorManager {
     }
 
     /**
-     * Attempt to unlock a door with an item.
+     * Attempt to unlock a door using an item from the hero's inventory.
+     */
+    private static boolean tryUnlockWithInventory(DoorTile door, Entity hero, String requiredItemId) {
+        return hero.fetch(InventoryComponent.class)
+                .map(inventory -> {
+                    // Check if inventory contains the required key
+                    for (var item : inventory.items()) {
+                        if (item instanceof EscapeRoomKey key) {
+                            if (key.getKeyId().equals(requiredItemId)) {
+                                // Unlock the door
+                                door.open();
+                                lockedDoors.remove(door);
+                                // Don't remove the key - it stays in inventory for reuse
+                                System.out.println("  🔓 Unlocked door with: " + requiredItemId);
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                })
+                .orElse(false);
+    }
+
+    /**
+     * Attempt to unlock a door with an item ID (direct unlock without inventory
+     * check).
      */
     public static boolean tryUnlockDoor(DoorTile door, String itemId) {
         String requiredItem = lockedDoors.get(door);
@@ -68,9 +111,22 @@ public class DoorManager {
             door.open();
             lockedDoors.remove(door);
             System.out.println("  🔓 Unlocked door with: " + itemId);
+            updateDoorVisuals(door);
             return true;
         }
         return false;
+    }
+
+    /**
+     * Update door visuals after unlocking.
+     */
+    private static void updateDoorVisuals(DoorTile door) {
+        Entity doorEntity = doorEntities.get(door);
+        if (doorEntity != null) {
+            // Remove old locked door entity and replace with unlocked version
+            Game.remove(doorEntity);
+            // Could spawn new unlocked door entity here if needed
+        }
     }
 
     /**
@@ -93,5 +149,6 @@ public class DoorManager {
     public static void clear() {
         doors.clear();
         lockedDoors.clear();
+        doorEntities.clear();
     }
 }

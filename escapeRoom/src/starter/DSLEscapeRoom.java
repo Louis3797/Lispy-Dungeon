@@ -85,6 +85,9 @@ public class DSLEscapeRoom {
             DungeonLevel level = DSLLevelLoader.createLevel(definition);
             Game.currentLevel(level);
 
+            // Spawn door entities now that level is loaded
+            DSLLevelLoader.spawnDoorEntities(definition);
+
             // Create and add hero at a safe floor position
             System.out.println("✓ Creating hero...");
             try {
