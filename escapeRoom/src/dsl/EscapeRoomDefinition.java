@@ -125,6 +125,9 @@ class NPC {
     public String texture;
     public String location;
     public Map<String, String> dialogue;
+    public boolean hostile;
+    public int health;
+    public int damage;
 
     @Override
     public String toString() {
@@ -132,6 +135,9 @@ class NPC {
                 "description='" + description + '\'' +
                 ", texture='" + texture + '\'' +
                 ", location='" + location + '\'' +
+                ", hostile=" + hostile +
+                ", health=" + health +
+                ", damage=" + damage +
                 '}';
     }
 }

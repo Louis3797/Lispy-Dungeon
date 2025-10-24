@@ -210,6 +210,14 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
             currentNPC.texture = ctx.STRING().getText().replaceAll("^\"|\"$", "");
         } else if (text.startsWith("location:") && ctx.ID() != null) {
             currentNPC.location = ctx.ID().getText();
+        } else if (text.startsWith("hostile:")) {
+            // Parse boolean value from text
+            String boolText = text.substring("hostile:".length());
+            currentNPC.hostile = Boolean.parseBoolean(boolText);
+        } else if (text.startsWith("health:") && ctx.INT() != null) {
+            currentNPC.health = Integer.parseInt(ctx.INT().getText());
+        } else if (text.startsWith("damage:") && ctx.INT() != null) {
+            currentNPC.damage = Integer.parseInt(ctx.INT().getText());
         }
     }
 

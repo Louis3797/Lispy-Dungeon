@@ -27,6 +27,8 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 -   ✅ **Locked doors** requiring specific keys to unlock
 -   ✅ **Interactive items** (keys, scrolls, readable objects)
 -   ✅ **NPCs** with dialogue systems
+-   ✅ **Hostile mobs** with combat mechanics (health, damage, AI behavior)
+-   ✅ **Combat system** - Player and mobs can fight and die
 -   ✅ **Quizzes** (single-choice and multiple-choice) with rewards
 -   ✅ **Inventory system** for collecting and using items
 
@@ -311,9 +313,20 @@ npcs:
         description: "String"             # NPC description (required)
         texture: "character/monster/chort"  # Texture path (required)
         location: room_id                 # Room where NPC spawns (required)
-        dialogue:                         # Dialogue tree (optional)
+        hostile: false                    # Is this NPC hostile? (optional, default: false)
+        health: 10                        # Health points for hostile mobs (optional, default: 10)
+        damage: 1                         # Damage dealt by hostile mobs (optional, default: 1)
+        dialogue:                         # Dialogue tree (optional, only for non-hostile NPCs)
             default_text: "String"        # Default dialogue text
 ```
+
+**Combat System:**
+
+-   **Hostile NPCs**: Set `hostile: true` to create combat-enabled mobs
+-   **Health**: Hit points - mob dies when health reaches 0
+-   **Damage**: Amount of damage dealt to player on attack
+-   **AI Behavior**: Hostile mobs automatically attack the player on sight
+-   **Player Combat**: Player can attack hostile mobs using combat controls
 
 **Example:**
 
@@ -323,20 +336,32 @@ npcs:
         description: "A stone guardian statue"
         texture: "character/monster/chort"
         location: entrance
+        hostile: false
         dialogue:
             default_text: "Solve my riddle to pass..."
 
-    old_wizard:
-        description: "A mysterious old wizard"
-        texture: "character/wizard/wizard"
-        location: secret_chamber
-        dialogue:
-            default_text: "Welcome, traveler..."
+    skeleton_warrior:
+        description: "A hostile skeleton"
+        texture: "character/monster/skeleton"
+        location: dungeon
+        hostile: true
+        health: 15
+        damage: 2
+
+    goblin:
+        description: "A sneaky goblin"
+        texture: "character/monster/goblin"
+        location: cave
+        hostile: true
+        health: 10
+        damage: 1
 ```
 
-**Note:** NPCs can be referenced in quizzes using the `attached_to` field.
+**Note:**
 
----
+-   NPCs with `hostile: false` (or no hostile field) can have dialogue and be referenced in quizzes
+-   Hostile mobs ignore dialogue settings and automatically engage in combat
+-   Both player and hostile mobs can die from combat---
 
 ## Examples
 
@@ -767,6 +792,8 @@ items:
 - Inventory system for item collection
 - Single-choice and multiple-choice quizzes
 - NPC dialogue system
+- Hostile mobs with combat mechanics
+- Player and mob health/damage system
 - Readable items (scrolls, books)
 - Automatic door placement with walls
 
@@ -780,6 +807,7 @@ items:
 - No player spawn customization
 - No win condition system
 - No event triggers
+- No loot drops from hostile mobs
 
 ---
 

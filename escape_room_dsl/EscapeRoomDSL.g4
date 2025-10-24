@@ -72,6 +72,9 @@ npc_property
     | 'requires_items:' array
     | 'start_x:' INT
     | 'start_y:' INT
+    | 'hostile:' BOOLEAN
+    | 'health:' INT
+    | 'damage:' INT
     ;
 
 dialogue

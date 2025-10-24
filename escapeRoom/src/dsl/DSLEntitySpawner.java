@@ -3,6 +3,7 @@ package dsl;
 import contrib.entities.EntityFactory;
 import contrib.entities.WorldItemBuilder;
 import contrib.entities.MonsterBuilder;
+import contrib.entities.AIFactory;
 import contrib.item.concreteItem.ItemResourceBerry;
 import core.Entity;
 import core.Game;
@@ -135,16 +136,33 @@ public class DSLEntitySpawner {
             return null;
         }
 
-        // Determine texture - check if it's a monster or friendly NPC
-        String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/chort";
-        boolean isMonster = texturePath.contains("monster");
-
-        // Create entity based on type
         Entity npcEntity;
-        if (isMonster) {
-            // Create a monster using MonsterBuilder
-            npcEntity = new MonsterBuilder<>().build(position);
+
+        if (npcDef.hostile) {
+            // Create hostile mob with combat capabilities
+            System.out.println("    ✓ Creating hostile mob: " + npcId);
+
+            // Get texture path
+            String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/chort";
+
+            // Configure health and damage
+            int health = npcDef.health > 0 ? npcDef.health : 10;
+            int damage = npcDef.damage > 0 ? npcDef.damage : 1;
+
+            // Use MonsterBuilder to create the entity with proper configuration
+            npcEntity = new MonsterBuilder<>()
+                    .name(npcId)
+                    .texturePath(texturePath)
+                    .health(health)
+                    .collideDamage(damage)
+                    .fightAI(() -> AIFactory.randomFightAI())
+                    .idleAI(() -> AIFactory.randomIdleAI())
+                    .transitionAI(() -> AIFactory.randomTransition(null))
+                    .build(position);
+
+            System.out.println("      Health: " + health + ", Damage: " + damage + ", Texture: " + texturePath);
         } else {
+            // Create friendly NPC (non-hostile)
             // For friendly NPCs, use a vase as placeholder
             npcEntity = EntityFactory.newVase(position);
         }

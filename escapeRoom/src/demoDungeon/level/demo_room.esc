@@ -81,10 +81,27 @@ escape_room:
     npcs:
         guardian:
             description: "A stone guardian statue"
-            texture: "character/monster/chort"
+            texture: "character/monster/pumpkin_dude"
             location: entrance
+            hostile: false
             dialogue:
                 default_text: "The statue remains silent..."
+        
+        skeleton_warrior:
+            description: "A hostile skeleton warrior"
+            texture: "character/monster/skeleton"
+            location: treasure_room
+            hostile: true
+            health: 15
+            damage: 2
+        
+        goblin:
+            description: "A sneaky goblin"
+            texture: "character/monster/goblin"
+            location: secret_chamber
+            hostile: true
+            health: 10
+            damage: 1
 
     player:
         start_x: 5
