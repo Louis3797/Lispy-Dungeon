@@ -78,6 +78,54 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
             currentId = ctx.ID(0).getText();
             definition.rooms.put(currentId, currentRoom);
             System.out.println("DEBUG: Found room: " + currentId);
+
+            // Parse room properties
+            if (ctx.STRING() != null && !ctx.STRING().isEmpty()) {
+                // First STRING is description
+                String desc = ctx.STRING(0).getText();
+                currentRoom.description = desc.substring(1, desc.length() - 1);
+            }
+
+            // Parse integers (x, y, width, height)
+            if (ctx.INT() != null && !ctx.INT().isEmpty()) {
+                int intIndex = 0;
+                String text = ctx.getText();
+
+                if (text.contains("x:") && ctx.INT().size() > intIndex) {
+                    currentRoom.x = Integer.parseInt(ctx.INT(intIndex++).getText());
+                }
+                if (text.contains("y:") && ctx.INT().size() > intIndex) {
+                    currentRoom.y = Integer.parseInt(ctx.INT(intIndex++).getText());
+                }
+                if (text.contains("width:") && ctx.INT().size() > intIndex) {
+                    currentRoom.width = Integer.parseInt(ctx.INT(intIndex++).getText());
+                }
+                if (text.contains("height:") && ctx.INT().size() > intIndex) {
+                    currentRoom.height = Integer.parseInt(ctx.INT(intIndex++).getText());
+                }
+            }
+
+            // Parse arrays (items, connections)
+            if (ctx.array() != null && !ctx.array().isEmpty()) {
+                for (var arrayCtx : ctx.array()) {
+                    String parentText = ctx.getText();
+                    List<String> values = parseArray(arrayCtx);
+
+                    if (parentText.contains("items:")) {
+                        currentRoom.items = values;
+                    } else if (parentText.contains("connections:")) {
+                        currentRoom.connections = values;
+                    }
+                }
+            }
+
+            // Parse locked_by
+            if (ctx.ID().size() > 1) {
+                String text = ctx.getText();
+                if (text.contains("locked_by:")) {
+                    currentRoom.lockedBy = ctx.ID(ctx.ID().size() - 1).getText();
+                }
+            }
         }
     }
 
