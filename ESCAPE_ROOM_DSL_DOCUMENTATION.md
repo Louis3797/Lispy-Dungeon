@@ -22,13 +22,13 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 
 ### Current Features
 
-- ✅ **Multi-room layouts** with automatic sizing and positioning
-- ✅ **Room connections** with auto-generated 3-tile wide corridors
-- ✅ **Locked doors** requiring specific keys to unlock
-- ✅ **Interactive items** (keys, scrolls, readable objects)
-- ✅ **NPCs** with dialogue systems
-- ✅ **Quizzes** (single-choice and multiple-choice) with rewards
-- ✅ **Inventory system** for collecting and using items
+-   ✅ **Multi-room layouts** with automatic sizing and positioning
+-   ✅ **Room connections** with auto-generated 3-tile wide corridors
+-   ✅ **Locked doors** requiring specific keys to unlock
+-   ✅ **Interactive items** (keys, scrolls, readable objects)
+-   ✅ **NPCs** with dialogue systems
+-   ✅ **Quizzes** (single-choice and multiple-choice) with rewards
+-   ✅ **Inventory system** for collecting and using items
 
 ---
 
@@ -78,13 +78,13 @@ escape_room:
 
 ### Data Types
 
-| Type | Example | Usage |
-|------|---------|-------|
-| **String** | `"Hello World"` or `'text'` | Descriptions, names, textures |
-| **Integer** | `42`, `100` | Positions, dimensions, time |
-| **Boolean** | `true`, `false` | Visibility flags |
-| **Array** | `[item1, item2, item3]` | Lists of items, connections |
-| **Identifier** | `room_name`, `golden_key` | IDs (alphanumeric + underscore) |
+| Type           | Example                     | Usage                           |
+| -------------- | --------------------------- | ------------------------------- |
+| **String**     | `"Hello World"` or `'text'` | Descriptions, names, textures   |
+| **Integer**    | `42`, `100`                 | Positions, dimensions, time     |
+| **Boolean**    | `true`, `false`             | Visibility flags                |
+| **Array**      | `[item1, item2, item3]`     | Lists of items, connections     |
+| **Identifier** | `room_name`, `golden_key`   | IDs (alphanumeric + underscore) |
 
 ### Comments
 
@@ -162,10 +162,10 @@ rooms:
 
 **Key Features:**
 
-- **Automatic Corridors**: Rooms listed in `connections` are automatically connected with 3-tile wide L-shaped corridors
-- **Locked Doors**: Use `locked_by` to require a specific key item to access the room
-- **Door Placement**: Doors are automatically placed at corridor entrances with walls on both sides
-- **Positioning**: Use grid coordinates (`x`, `y`) to position rooms - the system handles overlap detection
+-   **Automatic Corridors**: Rooms listed in `connections` are automatically connected with 3-tile wide L-shaped corridors
+-   **Locked Doors**: Use `locked_by` to require a specific key item to access the room
+-   **Door Placement**: Doors are automatically placed at corridor entrances with walls on both sides
+-   **Positioning**: Use grid coordinates (`x`, `y`) to position rooms - the system handles overlap detection
 
 **Example:**
 
@@ -179,7 +179,7 @@ rooms:
         height: 10
         items: [golden_key, scroll]
         connections: [treasure_room, secret_chamber]
-    
+
     treasure_room:
         description: "A room filled with ancient treasures"
         x: 18
@@ -187,7 +187,7 @@ rooms:
         width: 10
         height: 8
         connections: [entrance]
-    
+
     secret_chamber:
         description: "A hidden chamber"
         x: 2
@@ -219,10 +219,10 @@ items:
 
 **Item Types:**
 
-- **`"key"`**: Used to unlock doors (checks inventory when interacting with locked doors)
-- **`"readable"`**: Books, scrolls, notes that can be read
-- **`"consumable"`**: Items that can be used/consumed
-- **`"tool"`**: General tools and objects
+-   **`"key"`**: Used to unlock doors (checks inventory when interacting with locked doors)
+-   **`"readable"`**: Books, scrolls, notes that can be read
+-   **`"consumable"`**: Items that can be used/consumed
+-   **`"tool"`**: General tools and objects
 
 **Key Items:** Any item with `type: "key"` becomes an `EscapeRoomKey` that can unlock doors specified in `locked_by` fields.
 
@@ -235,14 +235,14 @@ items:
         type: "key"
         texture: "items/key/big_key.png"
         visible: true
-    
+
     ancient_scroll:
         description: "An old scroll with cryptic writing"
         type: "readable"
         texture: "items/book/book"
         readable: true
         content: "The key lies where the sun sets..."
-    
+
     rusty_key:
         description: "A rusty old key"
         type: "key"
@@ -271,8 +271,8 @@ quizzes:
 
 **Quiz Types:**
 
-- **`single_choice`**: Player selects one answer from multiple options
-- **`multiple_choice`**: Player can select multiple correct answers
+-   **`single_choice`**: Player selects one answer from multiple options
+-   **`multiple_choice`**: Player can select multiple correct answers
 
 **Answer Indexing:** Answers are 0-indexed (first answer = 0, second = 1, etc.)
 
@@ -287,7 +287,7 @@ quizzes:
         correct_answers: [0]
         reward: golden_key
         attached_to: chest
-    
+
     guardian_quiz:
         type: multiple_choice
         question: "Which are programming languages?"
@@ -325,7 +325,7 @@ npcs:
         location: entrance
         dialogue:
             default_text: "Solve my riddle to pass..."
-    
+
     old_wizard:
         description: "A mysterious old wizard"
         texture: "character/wizard/wizard"
@@ -361,7 +361,7 @@ escape_room:
             items: [torch, map]
             npcs: [guardian]
             connections: [main_hall, library]
-        
+
         main_hall:
             description: "A vast hall with ancient murals"
             x: 18
@@ -370,7 +370,7 @@ escape_room:
             height: 12
             items: [silver_key]
             connections: [entrance, treasure_vault]
-        
+
         library:
             description: "A dusty library filled with scrolls"
             x: 2
@@ -379,7 +379,7 @@ escape_room:
             height: 10
             items: [ancient_scroll, wisdom_book]
             connections: [entrance]
-        
+
         treasure_vault:
             description: "The legendary treasure vault"
             x: 18
@@ -404,27 +404,27 @@ escape_room:
             type: "key"
             texture: "items/key/big_key.png"
             visible: true
-        
+
         torch:
             description: "A flickering torch"
             type: "tool"
             texture: "items/torch"
             visible: true
-        
+
         map:
             description: "A worn temple map"
             type: "readable"
             texture: "items/book/book"
             readable: true
             content: "The vault lies beyond the main hall..."
-        
+
         ancient_scroll:
             description: "An ancient scroll with riddles"
             type: "readable"
             texture: "items/book/book"
             readable: true
             content: "Seek wisdom from the guardian..."
-        
+
         wisdom_book:
             description: "A book of ancient wisdom"
             type: "readable"
@@ -480,28 +480,32 @@ escape_room:
 ### Common Issues
 
 **Problem:** Doors don't appear or can't be interacted with  
-**Solution:** 
-- Check that rooms are connected via `connections: [room_id]`
-- Ensure rooms aren't overlapping
-- Verify room positions have enough space for corridors
+**Solution:**
+
+-   Check that rooms are connected via `connections: [room_id]`
+-   Ensure rooms aren't overlapping
+-   Verify room positions have enough space for corridors
 
 **Problem:** Key doesn't unlock door  
 **Solution:**
-- Check `locked_by` value matches the key's item ID exactly
-- Verify key has `type: "key"`
-- Ensure key is in player's inventory before interacting with door
+
+-   Check `locked_by` value matches the key's item ID exactly
+-   Verify key has `type: "key"`
+-   Ensure key is in player's inventory before interacting with door
 
 **Problem:** Items spawn in unreachable rooms  
 **Solution:**
-- Place essential items (keys) only in accessible rooms
-- Check room connections - ensure a path exists from start to item
-- Don't place quest items in locked rooms
+
+-   Place essential items (keys) only in accessible rooms
+-   Check room connections - ensure a path exists from start to item
+-   Don't place quest items in locked rooms
 
 **Problem:** Quiz doesn't give reward  
 **Solution:**
-- Verify `reward` item ID exists in `items` section
-- Check that `attached_to` references an existing entity
-- Ensure `correct_answers` indices match answer array
+
+-   Verify `reward` item ID exists in `items` section
+-   Check that `attached_to` references an existing entity
+-   Ensure `correct_answers` indices match answer array
 
 ---
 
@@ -515,15 +519,15 @@ You can create complex unlock sequences:
 rooms:
     area1:
         connections: [area2]
-    
+
     area2:
         connections: [area1, area3]
         locked_by: bronze_key
-    
+
     area3:
         connections: [area2, area4]
         locked_by: silver_key
-    
+
     area4:
         connections: [area3]
         locked_by: golden_key
@@ -534,13 +538,13 @@ items:
         type: "key"
         texture: "items/key/small_key.png"
         visible: true
-    
+
     silver_key:
         description: "Opens area 3"
         type: "key"
         texture: "items/key/big_key.png"
         visible: true
-    
+
     golden_key:
         description: "Opens area 4"
         type: "key"
@@ -559,13 +563,13 @@ rooms:
         width: 8
         height: 8
         items: [hint_scroll]
-    
+
     easy_puzzle_room:
         locked_by: tutorial_key
-    
+
     medium_puzzle_room:
         locked_by: easy_key
-    
+
     hard_boss_room:
         locked_by: medium_key
 ```
@@ -591,10 +595,10 @@ escapeRoom/
 
 ### Naming Conventions
 
-- **Room IDs**: `entrance`, `treasure_room`, `secret_chamber`
-- **Item IDs**: `golden_key`, `ancient_scroll`, `health_potion`
-- **NPC IDs**: `old_wizard`, `guardian_statue`, `mysterious_figure`
-- **Quiz IDs**: `riddle_1`, `math_puzzle`, `history_quiz`
+-   **Room IDs**: `entrance`, `treasure_room`, `secret_chamber`
+-   **Item IDs**: `golden_key`, `ancient_scroll`, `health_potion`
+-   **NPC IDs**: `old_wizard`, `guardian_statue`, `mysterious_figure`
+-   **Quiz IDs**: `riddle_1`, `math_puzzle`, `history_quiz`
 
 Use lowercase with underscores for all identifiers.
 
@@ -604,31 +608,31 @@ Use lowercase with underscores for all identifiers.
 
 ### Coordinate System
 
-- **Origin**: Top-left corner (0, 0)
-- **X-axis**: Increases to the right
-- **Y-axis**: Increases downward
-- **Tile Size**: 1 unit = 1 tile
+-   **Origin**: Top-left corner (0, 0)
+-   **X-axis**: Increases to the right
+-   **Y-axis**: Increases downward
+-   **Tile Size**: 1 unit = 1 tile
 
 ### Corridor Generation
 
-- **Width**: All corridors are 3 tiles wide
-- **Shape**: L-shaped paths between rooms
-- **Doors**: Automatically placed at corridor entrances
-- **Walls**: Generated beside doors to block corridor (2 walls per door)
+-   **Width**: All corridors are 3 tiles wide
+-   **Shape**: L-shaped paths between rooms
+-   **Doors**: Automatically placed at corridor entrances
+-   **Walls**: Generated beside doors to block corridor (2 walls per door)
 
 ### Door System
 
-- **Locked Doors**: Red closed texture, blocks player movement
-- **Unlocked Doors**: Green open texture, player can pass through
-- **Direction**: Automatically calculated based on corridor approach
-- **Interaction**: Click/press E to interact with doors
+-   **Locked Doors**: Red closed texture, blocks player movement
+-   **Unlocked Doors**: Green open texture, player can pass through
+-   **Direction**: Automatically calculated based on corridor approach
+-   **Interaction**: Click/press E to interact with doors
 
 ### Inventory System
 
-- **Capacity**: Unlimited
-- **Key Matching**: Checks for exact item ID match
-- **Visibility**: Items appear in inventory UI after pickup
-- **Usage**: Automatic when interacting with matching locked door
+-   **Capacity**: Unlimited
+-   **Key Matching**: Checks for exact item ID match
+-   **Visibility**: Items appear in inventory UI after pickup
+-   **Usage**: Automatic when interacting with matching locked door
 
 ---
 
@@ -689,21 +693,23 @@ quiz_id:
 ### Version 1.0 (October 2025)
 
 **Features:**
-- Multi-room layouts with automatic corridors
-- Locked doors with key-based unlocking
-- Inventory system for item collection
-- Single-choice and multiple-choice quizzes
-- NPC dialogue system
-- Readable items (scrolls, books)
-- Player customization
-- Automatic door placement with walls
+
+-   Multi-room layouts with automatic corridors
+-   Locked doors with key-based unlocking
+-   Inventory system for item collection
+-   Single-choice and multiple-choice quizzes
+-   NPC dialogue system
+-   Readable items (scrolls, books)
+-   Player customization
+-   Automatic door placement with walls
 
 **Known Limitations:**
-- No custom room shapes (all rectangular)
-- No animation sequences for doors
-- No conditional logic or variables
-- No timer-based events
-- No save/load system
+
+-   No custom room shapes (all rectangular)
+-   No animation sequences for doors
+-   No conditional logic or variables
+-   No timer-based events
+-   No save/load system
 
 ---
 
@@ -716,12 +722,13 @@ See `escapeRoom/src/demoDungeon/level/demo_room.esc` for a complete working exam
 ### Texture Paths
 
 Common texture locations:
-- **Characters**: `character/knight`, `character/wizard/wizard`
-- **Monsters**: `character/monster/chort`
-- **Keys**: `items/key/small_key.png`, `items/key/big_key.png`
-- **Books**: `items/book/book`
-- **Doors**: `dungeon/default/door/[direction].png`
-- **Walls**: `dungeon/default/wall/side.png`
+
+-   **Characters**: `character/knight`, `character/wizard/wizard`
+-   **Monsters**: `character/monster/chort`
+-   **Keys**: `items/key/small_key.png`, `items/key/big_key.png`
+-   **Books**: `items/book/book`
+-   **Doors**: `dungeon/default/door/[direction].png`
+-   **Walls**: `dungeon/default/wall/side.png`
 
 ### Getting Help
 
@@ -803,3 +810,4 @@ Common texture locations:
 ---
 
 **End of Documentation**
+```
