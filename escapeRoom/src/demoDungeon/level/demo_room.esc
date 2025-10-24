@@ -1,0 +1,61 @@
+escape_room:
+
+    metadata:
+        title: "DSL Demo Room"
+        description: "A demo escape room built from DSL"
+        difficulty: "easy"
+        max_time: 30
+
+    rooms:
+        entrance:
+            description: "The entrance hall"
+            x: 1
+            y: 1
+            width: 8
+            height: 8
+            items: [key, scroll]
+
+    quizzes:
+        treasure_quiz:
+            type: single_choice
+            question: "What is the capital of Germany?"
+            answers: [Berlin, Munich, Hamburg, Cologne]
+            correct_answers: [0]
+            reward: golden_key
+            attached_to: chest
+
+        guardian_quiz:
+            type: multiple_choice
+            question: "Which of the following are programming languages?"
+            answers: [Python, HTML, Java, CSS, JavaScript]
+            correct_answers: [0, 2, 4]
+            reward: wisdom_scroll
+            attached_to: guardian
+
+    items:
+        key:
+            description: "A rusty key"
+            type: "key"
+            texture: "items/key/small_key"
+            visible: true
+
+        scroll:
+            description: "An old scroll"
+            type: "readable"
+            texture: "items/book/book"
+            readable: true
+            content: "Welcome to the DSL escape room!"
+
+    npcs:
+        guardian:
+            description: "A stone guardian statue"
+            texture: "character/monster/chort"
+            location: entrance
+            dialogue:
+                default_text: "The statue remains silent..."
+
+    player:
+        start_x: 5
+        start_y: 5
+        texture: "character/knight"
+        description: "The brave adventurer"

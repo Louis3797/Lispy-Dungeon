@@ -1,20 +1,38 @@
 plugins {
     id 'java-library'
+    id 'antlr'
 }
 
 
 dependencies {
     api project(':dungeon')
 
+    // ANTLR for DSL parsing
+    antlr supportDependencies.antlr
+
     // JUnit and Mockito for testing
-    testImplementation supportDependencies.junit
-    testRuntimeOnly supportDependencies.junitLauncher
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     testImplementation supportDependencies.mockito_core
+    testRuntimeOnly supportDependencies.antlr
 }
 
-sourceSets.main.java.srcDirs = ['src/']
+
+test {
+    useJUnitPlatform()
+}
+
+sourceSets.main.java.srcDirs = ['src/', 'build/generated-src/antlr/main']
 sourceSets.main.resources.srcDirs = ['assets/']
 sourceSets.test.java.srcDirs = ['test/']
+sourceSets.test.resources.srcDirs = ['test_assets/']
+
+// ANTLR configuration
+sourceSets.main.antlr.srcDirs = ['../escape_room_dsl/']
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ['-package', 'dsl.parser', '-visitor', '-listener']
+    outputDirectory = file("build/generated-src/antlr/main/dsl/parser")
+}
 
 tasks.register('runCoopDungeon', JavaExec) {
     group 'starter'
@@ -25,6 +43,19 @@ tasks.register('runCoopDungeon', JavaExec) {
 tasks.register('runDemoRoom', JavaExec) {
     group 'starter'
     mainClass = 'starter.DemoRoom'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+tasks.register('runDSLParser', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DSLParserMain'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['escapeRoom/src/demoDungeon/level/demo_room.esc']
+}
+
+tasks.register('runDSLEscapeRoom', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DSLEscapeRoom'
     classpath = sourceSets.main.runtimeClasspath
 }
 
