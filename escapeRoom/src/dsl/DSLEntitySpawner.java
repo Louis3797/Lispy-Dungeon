@@ -1,6 +1,5 @@
 package dsl;
 
-import contrib.entities.EntityFactory;
 import contrib.entities.WorldItemBuilder;
 import contrib.entities.MonsterBuilder;
 import contrib.entities.AIFactory;
@@ -10,6 +9,11 @@ import core.Game;
 import core.level.DungeonLevel;
 import core.level.Tile;
 import core.utils.Point;
+import core.components.PositionComponent;
+import core.components.DrawComponent;
+import core.components.VelocityComponent;
+import core.utils.components.draw.animation.Animation;
+import core.utils.components.path.SimpleIPath;
 
 import java.io.IOException;
 import java.util.List;
@@ -163,8 +167,22 @@ public class DSLEntitySpawner {
             System.out.println("      Health: " + health + ", Damage: " + damage + ", Texture: " + texturePath);
         } else {
             // Create friendly NPC (non-hostile)
-            // For friendly NPCs, use a vase as placeholder
-            npcEntity = EntityFactory.newVase(position);
+            // Use a simple entity with texture but no AI or combat capabilities
+            String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/pumpkin_dude";
+
+            try {
+                Animation idleAnimation = new Animation(new SimpleIPath(texturePath));
+                npcEntity = new Entity(npcId);
+                npcEntity.add(new PositionComponent(position));
+                npcEntity.add(new DrawComponent(idleAnimation));
+                npcEntity.add(new VelocityComponent(0f));
+                System.out.println("      Created friendly NPC with texture: " + texturePath);
+            } catch (Exception e) {
+                System.err.println("      ✗ Failed to load texture for friendly NPC: " + texturePath);
+                // Fallback to simple entity without texture
+                npcEntity = new Entity(npcId);
+                npcEntity.add(new PositionComponent(position));
+            }
         }
 
         return npcEntity;

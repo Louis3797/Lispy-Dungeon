@@ -228,6 +228,30 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
     }
 
     @Override
+    public void enterPlayer(EscapeRoomDSLParser.PlayerContext ctx) {
+        System.out.println("DEBUG: Entering player section");
+        definition.player = new Player();
+
+        String text = ctx.getText();
+
+        // Parse class
+        if (ctx.PLAYER_CLASS() != null) {
+            definition.player.characterClass = ctx.PLAYER_CLASS().getText();
+            System.out.println("DEBUG: Player class: " + definition.player.characterClass);
+        }
+
+        // Parse start_x
+        if (text.contains("start_x:") && ctx.INT() != null && !ctx.INT().isEmpty()) {
+            definition.player.startX = Integer.parseInt(ctx.INT(0).getText());
+        }
+
+        // Parse start_y
+        if (text.contains("start_y:") && ctx.INT() != null && ctx.INT().size() > 1) {
+            definition.player.startY = Integer.parseInt(ctx.INT(1).getText());
+        }
+    }
+
+    @Override
     public void enterQuizzes(EscapeRoomDSLParser.QuizzesContext ctx) {
         System.out.println("DEBUG: Entering quizzes section");
         if (definition.quizzes == null) {

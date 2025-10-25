@@ -5,7 +5,7 @@ start
     ;
 
 escape_room
-    : 'escape_room:' metadata rooms? quizzes? items? npcs? logic? events?
+    : 'escape_room:' metadata rooms? quizzes? items? npcs? player? logic? events?
     ;
 
 metadata
@@ -93,6 +93,13 @@ dialogue_conditions
 
 dialogue_condition
     : ID ':' STRING
+    ;
+
+player
+    : 'player:'
+      ('class:' PLAYER_CLASS)?
+      ('start_x:' INT)?
+      ('start_y:' INT)?
     ;
 
 quizzes
@@ -209,6 +216,11 @@ ITEM_TYPE
     : 'tool'
     | 'document'
     | 'decoration'
+    ;
+
+PLAYER_CLASS
+    : 'wizard'
+    | 'hunter'
     ;
 
 BOOLEAN

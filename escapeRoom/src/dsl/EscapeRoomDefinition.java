@@ -12,6 +12,7 @@ public class EscapeRoomDefinition {
     public Map<String, Quiz> quizzes;
     public Map<String, Item> items;
     public Map<String, NPC> npcs;
+    public Player player;
 
     /**
      * Get the title of the escape room, or a default if not set.

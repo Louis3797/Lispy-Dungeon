@@ -91,9 +91,32 @@ public class DSLEscapeRoom {
             // Create and add hero at a safe floor position
             System.out.println("✓ Creating hero...");
             try {
-                Entity hero = HeroFactory.newHero();
-                // Set hero position to a safe floor tile
-                Point heroPosition = DSLEntitySpawner.getRandomFloorPosition();
+                // Determine character class from DSL or use default (WIZARD)
+                contrib.entities.CharacterClass characterClass = contrib.entities.CharacterClass.WIZARD;
+                if (definition.player != null && definition.player.characterClass != null) {
+                    String classStr = definition.player.characterClass.toLowerCase();
+                    if ("hunter".equals(classStr)) {
+                        characterClass = contrib.entities.CharacterClass.HUNTER;
+                    } else if ("wizard".equals(classStr)) {
+                        characterClass = contrib.entities.CharacterClass.WIZARD;
+                    }
+                    System.out.println("  Player class: " + characterClass);
+                }
+
+                Entity hero = HeroFactory.newHero(characterClass);
+
+                // Set hero position from DSL or use random floor position
+                boolean useDSLPosition = definition.player != null && definition.player.startX != null
+                        && definition.player.startY != null;
+                Point heroPosition = useDSLPosition ? new Point(definition.player.startX, definition.player.startY)
+                        : DSLEntitySpawner.getRandomFloorPosition();
+                if (useDSLPosition) {
+                    System.out.println("  Starting position from DSL: (" + definition.player.startX + ", "
+                            + definition.player.startY + ")");
+                } else {
+                    System.out.println("  Using random starting position");
+                }
+
                 if (heroPosition != null) {
                     hero.fetch(core.components.PositionComponent.class).ifPresent(pc -> pc.position(heroPosition));
                 }

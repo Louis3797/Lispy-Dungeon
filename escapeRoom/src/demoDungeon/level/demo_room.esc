@@ -87,9 +87,9 @@ escape_room:
             dialogue:
                 default_text: "The statue remains silent..."
         
-        skeleton_warrior:
-            description: "A hostile skeleton warrior"
-            texture: "character/monster/skeleton"
+        orc_warrior:
+            description: "A hostile orc warrior"
+            texture: "character/monster/orc_warrior"
             location: treasure_room
             hostile: true
             health: 15
@@ -104,7 +104,4 @@ escape_room:
             damage: 1
 
     player:
-        start_x: 5
-        start_y: 5
-        texture: "character/knight"
-        description: "The brave adventurer"
+        class: wizard
