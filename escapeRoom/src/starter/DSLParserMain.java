@@ -52,6 +52,6 @@ public class DSLParserMain {
         System.out.println(simpleDef);
         System.out.println();
 
-        System.out.println("✓ DSL parsing and interpretation complete!");
+        System.out.println("[OK] DSL parsing and interpretation complete!");
     }
 }

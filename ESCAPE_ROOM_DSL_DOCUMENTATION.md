@@ -23,6 +23,7 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 ### Current Features
 
 -   ✅ **Multi-room layouts** with automatic sizing and positioning
+-   ✅ **Custom room shapes** with ASCII art patterns (L-shapes, circles, mazes)
 -   ✅ **Room connections** with auto-generated 3-tile wide corridors
 -   ✅ **Locked doors** requiring specific keys to unlock
 -   ✅ **Interactive items** (keys, scrolls, readable objects)
@@ -148,6 +149,11 @@ metadata:
 
 Define physical spaces that make up your escape room. **At least one room is required.**
 
+Rooms can be created in two ways:
+
+1. **Rectangular rooms** - Use `width` and `height` for standard rectangular shapes
+2. **Custom ASCII patterns** - Use `pattern` for complex shapes like L-shapes, circles, or mazes
+
 **Properties:**
 
 ```dsl
@@ -156,13 +162,35 @@ rooms:
         description: "String"         # Room description (required)
         x: 2                          # Grid X position (required)
         y: 2                          # Grid Y position (required)
-        width: 10                     # Room width in tiles (required)
-        height: 8                     # Room height in tiles (required)
+
+        # Option 1: Rectangular room
+        width: 10                     # Room width in tiles (for rectangular rooms)
+        height: 8                     # Room height in tiles (for rectangular rooms)
+
+        # Option 2: Custom shape with ASCII art
+        pattern: """                  # ASCII pattern (use instead of width/height)
+        ##########
+        #........#
+        #........#
+        ##########
+        """
+
         items: [item1, item2]         # Items spawned in room (optional)
         npcs: [npc1]                  # NPCs spawned in room (optional)
         connections: [other_room]     # Connected rooms (optional)
         locked_by: key_id             # Key required to enter (optional)
 ```
+
+**ASCII Pattern Symbols:**
+
+Use triple quotes `"""` to define multiline ASCII patterns:
+
+| Symbol | Meaning          | Description                                           |
+| ------ | ---------------- | ----------------------------------------------------- |
+| `#`    | Wall             | Creates a wall tile (blocks movement)                 |
+| `.`    | Floor            | Creates a walkable floor tile                         |
+| ` `    | Skip             | Leaves tile unchanged (for irregular shapes)          |
+| `D`    | Door Placeholder | Reserved for future door placement (treated as floor) |
 
 **Key Features:**
 
@@ -170,8 +198,9 @@ rooms:
 -   **Locked Doors**: Use `locked_by` to require a specific key item to access the room
 -   **Door Placement**: Doors are automatically placed at corridor entrances with walls on both sides
 -   **Positioning**: Use grid coordinates (`x`, `y`) to position rooms - the system handles overlap detection
+-   **Custom Shapes**: Create L-shapes, T-shapes, circles, or any custom room layout using ASCII art
 
-**Example:**
+**Example - Rectangular Rooms:**
 
 ```dsl
 rooms:
@@ -201,6 +230,70 @@ rooms:
         connections: [entrance]
         locked_by: golden_key  # Player needs golden_key to enter
 ```
+
+**Example - Custom ASCII Patterns:**
+
+```dsl
+rooms:
+    # L-shaped room
+    storage_room:
+        description: "An L-shaped storage area"
+        x: 20
+        y: 5
+        pattern: """
+##########
+#........#
+#........#
+#........#
+#####....#
+    #....#
+    #....#
+    ######
+"""
+        connections: [entrance]
+
+    # Circular chamber
+    ritual_chamber:
+        description: "A circular ritual chamber"
+        x: 35
+        y: 8
+        pattern: """
+  ######
+ #......#
+#........#
+#........#
+#........#
+ #......#
+  ######
+"""
+        connections: [storage_room]
+
+    # T-shaped hallway
+    grand_hall:
+        description: "A grand T-shaped hall"
+        x: 50
+        y: 2
+        pattern: """
+    ####
+    #..#
+    #..#
+############
+#..........#
+#..........#
+############
+"""
+        connections: [ritual_chamber]
+```
+
+**Tips for Custom Patterns:**
+
+-   Start and end the pattern with `"""` (triple quotes)
+-   Each line represents one row of tiles
+-   Walls (`#`) form the boundaries of your room
+-   Interior floor (`.`) is where players can walk
+-   Use spaces for irregular shapes (leaves background unchanged)
+-   Patterns are placed starting at (`x`, `y`) position
+-   No need to specify `width` or `height` when using `pattern`
 
 ---
 

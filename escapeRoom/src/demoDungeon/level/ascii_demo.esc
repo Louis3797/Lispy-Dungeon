@@ -1,0 +1,61 @@
+escape_room:
+
+    metadata:
+        title: "ASCII Art Demo"
+        description: "Demo of custom room shapes with ASCII patterns"
+        difficulty: "easy"
+        max_time: 20
+
+    rooms:
+        # Standard rectangular room
+        entrance:
+            description: "A normal rectangular entrance"
+            x: 2
+            y: 2
+            width: 10
+            height: 8
+            items: [key]
+            connections: [custom_room]
+
+        # Custom L-shaped room using ASCII art
+        custom_room:
+            description: "An L-shaped room created with ASCII art"
+            x: 16
+            y: 2
+            pattern: """
+##########
+#........#
+#........#
+#........#
+#####....#
+    #....#
+    #....#
+    ######
+"""
+            connections: [entrance, circular_room]
+
+        # Circular-ish room
+        circular_room:
+            description: "A circular chamber"
+            x: 30
+            y: 4
+            pattern: """
+  ######
+ #......#
+#........#
+#........#
+#........#
+ #......#
+  ######
+"""
+            connections: [custom_room]
+
+    items:
+        key:
+            description: "A mysterious key"
+            type: "key"
+            texture: "items/key/small_key.png"
+            visible: true
+
+    player:
+        class: hunter

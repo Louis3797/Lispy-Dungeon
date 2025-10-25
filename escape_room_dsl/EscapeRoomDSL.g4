@@ -27,6 +27,7 @@ room
       ('y:' INT)?
       ('width:' INT)?
       ('height:' INT)?
+      ('pattern:' multiline_string)?
       ('items:' array)?
       ('npcs:' array)?
       ('connections:' array)?
@@ -199,6 +200,10 @@ value
     | object
     ;
 
+multiline_string
+    : MULTILINE_STRING
+    ;
+
 // Lexer rules
 QUIZ_TYPE
     : 'single_choice'
@@ -235,6 +240,10 @@ ID
 STRING
     : '"' (~["\r\n])* '"'
     | '\'' (~['\r\n])* '\''
+    ;
+
+MULTILINE_STRING
+    : '"""' .*? '"""'
     ;
 
 INT

@@ -48,7 +48,7 @@ public class DoorEntityFactory {
                 (entity, hero) -> {
                     if (door.isOpen()) {
                         DialogUtils.showTextPopup(
-                                "✓ The door is now open!",
+                                "[OK] The door is now open!",
                                 "Door");
                     } else {
                         // Check hero's inventory for the required key
@@ -81,7 +81,7 @@ public class DoorEntityFactory {
                                     "Success");
                         } else {
                             DialogUtils.showTextPopup(
-                                    "🔒 This door is locked.\n\nRequired: " + requiredItemId,
+                                    "[LOCKED] This door is locked.\n\nRequired: " + requiredItemId,
                                     "Locked Door");
                         }
                     }

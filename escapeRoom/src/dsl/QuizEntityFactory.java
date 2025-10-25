@@ -25,7 +25,7 @@ import java.util.function.BiConsumer;
  */
 public class QuizEntityFactory {
 
-    private static final String DEFAULT_NPC_TEXTURE = "character/monster/chort";
+    private static final String DEFAULT_NPC_TEXTURE = "character/monster/pumpkin_dude";
 
     /**
      * Create a chest that shows a quiz when opened.
@@ -124,43 +124,5 @@ public class QuizEntityFactory {
      */
     public static Entity createQuizNPC(Point position, Quiz quiz, String reward) {
         return createQuizNPC(position, DEFAULT_NPC_TEXTURE, quiz, reward, null);
-    }
-
-    /**
-     * Example: Create a test quiz chest with a simple single-choice question.
-     * 
-     * @param position The position to spawn
-     * @return The quiz chest entity
-     */
-    public static Entity createExampleQuizChest(Point position) {
-        Quiz quiz = QuizBuilder.createSingleChoice(
-                "Was ist die Hauptstadt von Deutschland?",
-                List.of("Berlin", "München", "Hamburg", "Köln"),
-                0 // Berlin is correct
-        );
-        quiz.explanation("Berlin ist seit 1990 die Hauptstadt des wiedervereinigten Deutschlands.");
-
-        return createQuizChest(position, quiz, "gold_key");
-    }
-
-    /**
-     * Example: Create a test quiz NPC with a multiple-choice question.
-     * 
-     * @param position The position to spawn
-     * @return The quiz NPC entity
-     */
-    public static Entity createExampleQuizNPC(Point position) {
-        Quiz quiz = QuizBuilder.createMultipleChoice(
-                "Welche der folgenden Aussagen sind korrekt?",
-                List.of(
-                        "Die Erde ist flach",
-                        "Wasser besteht aus H2O",
-                        "Die Sonne ist ein Stern",
-                        "Der Mond ist größer als die Erde"),
-                List.of(1, 2) // H2O and Stern are correct
-        );
-        quiz.explanation("Wasser hat die chemische Formel H2O und die Sonne ist ein Stern.");
-
-        return createQuizNPC(position, quiz, "wisdom_scroll");
     }
 }

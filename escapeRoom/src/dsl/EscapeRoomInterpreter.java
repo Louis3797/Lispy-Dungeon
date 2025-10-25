@@ -86,6 +86,17 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
                 currentRoom.description = desc.substring(1, desc.length() - 1);
             }
 
+            // Parse pattern (multiline string for ASCII art)
+            if (ctx.multiline_string() != null) {
+                String pattern = ctx.multiline_string().getText();
+                // Remove the """ delimiters
+                if (pattern.startsWith("\"\"\"") && pattern.endsWith("\"\"\"")) {
+                    pattern = pattern.substring(3, pattern.length() - 3);
+                }
+                currentRoom.pattern = pattern;
+                System.out.println("DEBUG: Room has custom pattern (ASCII art)");
+            }
+
             // Parse integers (x, y, width, height)
             if (ctx.INT() != null && !ctx.INT().isEmpty()) {
                 int intIndex = 0;

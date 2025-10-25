@@ -5,6 +5,7 @@ import contrib.systems.*;
 import core.Entity;
 import core.Game;
 import core.level.DungeonLevel;
+import core.systems.InputSystem;
 import core.utils.Point;
 import dsl.EscapeRoomDefinition;
 import dsl.EscapeRoomInterpreter;
@@ -60,19 +61,22 @@ public class DSLEscapeRoom {
         // Interpret
         EscapeRoomDefinition definition = EscapeRoomInterpreter.interpret(tree);
 
-        System.out.println("✓ Parsed: " + definition);
+        System.out.println("[OK] Parsed: " + definition);
         return definition;
     }
 
     /**
-     * Configures the game with the DSL definition.
+     * Configures the game with the pDSL definition.
      */
     private static void configureGame(EscapeRoomDefinition definition) {
         Game.userOnSetup(() -> {
             System.out.println("\n=== Setting up Escape Room ===");
 
             // Add game systems for movement and controls
-            System.out.println("✓ Adding game systems...");
+            System.out.println("[OK] Adding game systems...");
+            InputSystem inputSystem = new InputSystem();
+            inputSystem.run(); // Start the input system so controls work
+            Game.add(inputSystem);
             Game.add(new AISystem());
             Game.add(new PathSystem());
             Game.add(new CollisionSystem());
@@ -89,7 +93,7 @@ public class DSLEscapeRoom {
             DSLLevelLoader.spawnDoorEntities(definition);
 
             // Create and add hero at a safe floor position
-            System.out.println("✓ Creating hero...");
+            System.out.println("[OK] Creating hero...");
             try {
                 // Determine character class from DSL or use default (WIZARD)
                 contrib.entities.CharacterClass characterClass = contrib.entities.CharacterClass.WIZARD;
@@ -128,7 +132,7 @@ public class DSLEscapeRoom {
             // Spawn items, NPCs, and monsters from DSL
             DSLEntitySpawner.spawnEntities(definition);
 
-            System.out.println("✓ Escape room setup complete!");
+            System.out.println("[OK] Escape room setup complete!");
             System.out.println("  Use WASD or arrow keys to move");
             System.out.println("  Press E to interact with chests and NPCs");
             System.out.println();

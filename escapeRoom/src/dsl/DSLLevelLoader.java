@@ -67,7 +67,7 @@ public class DSLLevelLoader {
         // Create the level with the layout
         DungeonLevel level = new DungeonLevel(layout, DesignLabel.DEFAULT);
 
-        System.out.println("✓ Level created: " + definition.getTitle());
+        System.out.println("[OK] Level created: " + definition.getTitle());
 
         return level;
     }
@@ -83,7 +83,7 @@ public class DSLLevelLoader {
 
         var levelOpt = Game.currentLevel();
         if (levelOpt.isEmpty()) {
-            System.err.println("  ✗ No level loaded, cannot spawn doors");
+            System.err.println("  [FAIL] No level loaded, cannot spawn doors");
             return;
         }
 
@@ -97,7 +97,7 @@ public class DSLLevelLoader {
                 Room room = entry.getValue();
                 if (room.lockedBy != null && !room.lockedBy.isEmpty()) {
                     roomLocks.put(roomId, room.lockedBy);
-                    System.out.println("  🔒 Room '" + roomId + "' requires: " + room.lockedBy);
+                    System.out.println("  [LOCKED] Room '" + roomId + "' requires: " + room.lockedBy);
                 }
             }
         }
@@ -161,7 +161,7 @@ public class DSLLevelLoader {
             }
         }
 
-        System.out.println("  ✓ Spawned " + doorsSpawned + " door entities with corridor walls");
+        System.out.println("  [OK] Spawned " + doorsSpawned + " door entities with corridor walls");
     }
 
     /**
@@ -201,7 +201,7 @@ public class DSLLevelLoader {
         // Generate corridors between connected rooms
         generateCorridors(layout, definition);
 
-        System.out.println("✓ Generated level layout: " + maxX + "x" + maxY +
+        System.out.println("[OK] Generated level layout: " + maxX + "x" + maxY +
                 " with " + definition.rooms.size() + " room(s)");
 
         // Debug: print layout
@@ -250,7 +250,7 @@ public class DSLLevelLoader {
                 Room targetRoom = definition.rooms.get(targetRoomId);
                 if (targetRoom != null) {
                     createCorridor(layout, roomId, room, targetRoomId, targetRoom);
-                    System.out.println("  ✓ Connected '" + roomId + "' to '" + targetRoomId + "'");
+                    System.out.println("  [OK] Connected '" + roomId + "' to '" + targetRoomId + "'");
                 }
             }
         }
@@ -338,7 +338,8 @@ public class DSLLevelLoader {
                 doorPos = new Point(roomLeft, corridorY);
                 direction = "left"; // Door faces left (player comes from left/west)
                 System.out.println(
-                        "  🚪 Marked door at LEFT wall of '" + roomId + "' at (" + roomLeft + "," + corridorY + ")");
+                        "  [DOOR] Marked door at LEFT wall of '" + roomId + "' at (" + roomLeft + "," + corridorY
+                                + ")");
             }
         }
         // Right wall (corridor approaching from the east)
@@ -348,7 +349,8 @@ public class DSLLevelLoader {
                 doorPos = new Point(roomRight, corridorY);
                 direction = "right"; // Door faces right (player comes from right/east)
                 System.out.println(
-                        "  🚪 Marked door at RIGHT wall of '" + roomId + "' at (" + roomRight + "," + corridorY + ")");
+                        "  [DOOR] Marked door at RIGHT wall of '" + roomId + "' at (" + roomRight + "," + corridorY
+                                + ")");
             }
         }
         // Top wall (corridor approaching from the north)
@@ -358,7 +360,7 @@ public class DSLLevelLoader {
                 doorPos = new Point(corridorX, roomTop);
                 direction = "top"; // Door faces top (player comes from top/north)
                 System.out.println(
-                        "  🚪 Marked door at TOP wall of '" + roomId + "' at (" + corridorX + "," + roomTop + ")");
+                        "  [DOOR] Marked door at TOP wall of '" + roomId + "' at (" + corridorX + "," + roomTop + ")");
             }
         }
         // Bottom wall (corridor approaching from the south)
@@ -367,7 +369,7 @@ public class DSLLevelLoader {
                 layout[roomBottom][corridorX] = LevelElement.DOOR;
                 doorPos = new Point(corridorX, roomBottom);
                 direction = "bottom"; // Door faces bottom (player comes from bottom/south)
-                System.out.println("  🚪 Marked door at BOTTOM wall of '" + roomId + "' at (" + corridorX + ","
+                System.out.println("  [DOOR] Marked door at BOTTOM wall of '" + roomId + "' at (" + corridorX + ","
                         + roomBottom + ")");
             }
         }
@@ -389,6 +391,14 @@ public class DSLLevelLoader {
     private static void placeRoom(LevelElement[][] layout, Room room) {
         int startX = room.x > 0 ? room.x : 1;
         int startY = room.y > 0 ? room.y : 1;
+
+        // Check if room has a custom ASCII pattern
+        if (room.pattern != null && !room.pattern.trim().isEmpty()) {
+            placeRoomWithPattern(layout, room, startX, startY);
+            return;
+        }
+
+        // Default rectangular room generation
         int width = room.width > 0 ? room.width : 10;
         int height = room.height > 0 ? room.height : 10;
 
@@ -408,8 +418,64 @@ public class DSLLevelLoader {
         // Add openings in walls where corridors should connect
         // (openings are created automatically by corridor generation now)
 
-        System.out.println("  ✓ Placed room at (" + startX + "," + startY +
+        System.out.println("  [OK] Placed room at (" + startX + "," + startY +
                 ") size " + width + "x" + height);
+    }
+
+    /**
+     * Places a room using an ASCII art pattern.
+     * Pattern symbols:
+     * '#' = wall
+     * '.' = floor
+     * ' ' = skip (leave as is)
+     * 'D' = door placeholder
+     */
+    private static void placeRoomWithPattern(LevelElement[][] layout, Room room, int startX, int startY) {
+        String pattern = room.pattern.trim();
+        String[] lines = pattern.split("\n");
+
+        int maxWidth = 0;
+        for (String line : lines) {
+            maxWidth = Math.max(maxWidth, line.length());
+        }
+
+        System.out.println("  [OK] Placed custom room at (" + startX + "," + startY +
+                ") size " + maxWidth + "x" + lines.length + " (ASCII pattern)");
+
+        // Place tiles according to pattern
+        for (int patternY = 0; patternY < lines.length; patternY++) {
+            String line = lines[patternY];
+            for (int patternX = 0; patternX < line.length(); patternX++) {
+                int layoutX = startX + patternX;
+                int layoutY = startY + patternY;
+
+                // Check bounds
+                if (layoutY >= layout.length || layoutX >= layout[0].length) {
+                    continue;
+                }
+
+                char c = line.charAt(patternX);
+                switch (c) {
+                    case '#':
+                        layout[layoutY][layoutX] = LevelElement.WALL;
+                        break;
+                    case '.':
+                        layout[layoutY][layoutX] = LevelElement.FLOOR;
+                        break;
+                    case 'D':
+                        // Door placeholder - will be handled by corridor generation
+                        layout[layoutY][layoutX] = LevelElement.FLOOR;
+                        break;
+                    case ' ':
+                        // Skip - leave whatever was there
+                        break;
+                    default:
+                        // Unknown character - treat as floor
+                        layout[layoutY][layoutX] = LevelElement.FLOOR;
+                        break;
+                }
+            }
+        }
     }
 
     /**

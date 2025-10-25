@@ -48,7 +48,7 @@ public class DSLEntitySpawner {
             spawnQuizEntities(definition);
         }
 
-        System.out.println("✓ Entity spawning complete!");
+        System.out.println("[OK] Entity spawning complete!");
     }
 
     /**
@@ -65,10 +65,10 @@ public class DSLEntitySpawner {
                 Entity itemEntity = createItemEntity(itemId, itemDef);
                 if (itemEntity != null) {
                     Game.add(itemEntity);
-                    System.out.println("    ✓ Spawned item: " + itemId);
+                    System.out.println("    [OK] Spawned item: " + itemId);
                 }
             } catch (Exception e) {
-                System.err.println("    ✗ Failed to spawn item " + itemId + ": " + e.getMessage());
+                System.err.println("    [FAIL] Failed to spawn item " + itemId + ": " + e.getMessage());
             }
         }
     }
@@ -80,7 +80,7 @@ public class DSLEntitySpawner {
         // Get a random floor tile to place the item
         Point position = getRandomFloorPosition();
         if (position == null) {
-            System.err.println("    ✗ No floor tile found for item: " + itemId);
+            System.err.println("    [FAIL] No floor tile found for item: " + itemId);
             return null;
         }
 
@@ -116,10 +116,10 @@ public class DSLEntitySpawner {
                 Entity npcEntity = createNPCEntity(npcId, npcDef);
                 if (npcEntity != null) {
                     Game.add(npcEntity);
-                    System.out.println("    ✓ Spawned NPC: " + npcId);
+                    System.out.println("    [OK] Spawned NPC: " + npcId);
                 }
             } catch (Exception e) {
-                System.err.println("    ✗ Failed to spawn NPC " + npcId + ": " + e.getMessage());
+                System.err.println("    [FAIL] Failed to spawn NPC " + npcId + ": " + e.getMessage());
             }
         }
     }
@@ -131,7 +131,7 @@ public class DSLEntitySpawner {
         // Get position
         Point position = getRandomFloorPosition();
         if (position == null) {
-            System.err.println("    ✗ No floor tile found for NPC: " + npcId);
+            System.err.println("    [FAIL] No floor tile found for NPC: " + npcId);
             return null;
         }
 
@@ -144,7 +144,7 @@ public class DSLEntitySpawner {
 
         if (npcDef.hostile) {
             // Create hostile mob with combat capabilities
-            System.out.println("    ✓ Creating hostile mob: " + npcId);
+            System.out.println("    [OK] Creating hostile mob: " + npcId);
 
             // Get texture path
             String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/chort";
@@ -178,7 +178,7 @@ public class DSLEntitySpawner {
                 npcEntity.add(new VelocityComponent(0f));
                 System.out.println("      Created friendly NPC with texture: " + texturePath);
             } catch (Exception e) {
-                System.err.println("      ✗ Failed to load texture for friendly NPC: " + texturePath);
+                System.err.println("      [FAIL] Failed to load texture for friendly NPC: " + texturePath);
                 // Fallback to simple entity without texture
                 npcEntity = new Entity(npcId);
                 npcEntity.add(new PositionComponent(position));
@@ -224,10 +224,10 @@ public class DSLEntitySpawner {
                 Entity quizEntity = createQuizEntity(quizId, quizDef);
                 if (quizEntity != null) {
                     Game.add(quizEntity);
-                    System.out.println("    ✓ Spawned quiz entity: " + quizId);
+                    System.out.println("    [OK] Spawned quiz entity: " + quizId);
                 }
             } catch (Exception e) {
-                System.err.println("    ✗ Failed to spawn quiz " + quizId + ": " + e.getMessage());
+                System.err.println("    [FAIL] Failed to spawn quiz " + quizId + ": " + e.getMessage());
             }
         }
     }
@@ -239,7 +239,7 @@ public class DSLEntitySpawner {
         // Get position
         Point position = getRandomFloorPosition();
         if (position == null) {
-            System.err.println("    ✗ No floor tile found for quiz: " + quizId);
+            System.err.println("    [FAIL] No floor tile found for quiz: " + quizId);
             return null;
         }
 

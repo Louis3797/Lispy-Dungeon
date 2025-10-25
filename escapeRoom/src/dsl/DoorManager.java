@@ -33,7 +33,7 @@ public class DoorManager {
     public static void lockDoor(DoorTile door, String requiredItemId) {
         door.close();
         lockedDoors.put(door, requiredItemId);
-        System.out.println("  🔒 Locked door (requires: " + requiredItemId + ")");
+        System.out.println("  [LOCKED] Locked door (requires: " + requiredItemId + ")");
     }
 
     /**
@@ -69,7 +69,7 @@ public class DoorManager {
                                 () -> updateDoorVisuals(door));
                     } else {
                         DialogUtils.showTextPopup(
-                                "🔒 This door is locked.\n\nYou need: " + requiredItemId,
+                                "[LOCKED] This door is locked.\n\nYou need: " + requiredItemId,
                                 "Locked Door");
                     }
                 }));

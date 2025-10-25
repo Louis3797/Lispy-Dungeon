@@ -59,6 +59,7 @@ class Metadata {
 class Room {
     public String description;
     public int x, y, width, height;
+    public String pattern; // ASCII art pattern for custom room shapes
     public List<String> items;
     public List<String> connections;
     public String lockedBy;
@@ -70,6 +71,7 @@ class Room {
                 "description='" + description + '\'' +
                 ", position=(" + x + "," + y + ")" +
                 ", size=" + width + "x" + height +
+                ", hasPattern=" + (pattern != null) +
                 '}';
     }
 }
