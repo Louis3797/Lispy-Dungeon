@@ -79,10 +79,10 @@ escape_room:
             texture: "items/key/small_key.png"
             visible: true
 
-        scroll:
+        wisdom_scroll:
             description: "An old scroll"
             type: "readable"
-            texture: "items/book/book"
+            texture: "items/book/spell_book.png"
             readable: true
             content: "Welcome to the DSL escape room!"
 

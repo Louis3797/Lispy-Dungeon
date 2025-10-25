@@ -22,17 +22,78 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 
 ### Current Features
 
+#### 🏗️ **Level Design**
 -   ✅ **Multi-room layouts** with automatic sizing and positioning
--   ✅ **Custom room shapes** with ASCII art patterns (L-shapes, circles, mazes)
+-   ✅ **Custom room shapes** with ASCII art patterns (L-shapes, circles, T-shapes, mazes)
 -   ✅ **Room connections** with auto-generated 3-tile wide corridors
--   ✅ **Locked doors** requiring specific keys to unlock
--   ✅ **Interactive items** (keys, scrolls, readable objects)
--   ✅ **NPCs** with dialogue systems
--   ✅ **Hostile mobs** with combat mechanics (health, damage, AI behavior)
--   ✅ **Combat system** - Player and mobs can fight and die
--   ✅ **Player character classes** - Choose between wizard (magic) or hunter (bow)
--   ✅ **Quizzes** (single-choice and multiple-choice) with rewards
--   ✅ **Inventory system** for collecting and using items
+-   ✅ **Smart door placement** at corridor-room intersections with surrounding walls
+-   ✅ **Locked doors** requiring specific keys to unlock with visual feedback
+-   ✅ **Dynamic level generation** with ASCII console map display
+
+#### ⚔️ **Combat System**
+-   ✅ **Hostile mobs** with health, damage, and AI behavior
+-   ✅ **Player combat** - Attack with skills (fireball, bow)
+-   ✅ **AI behaviors** - Fight AI (chase/melee/ranged), Idle AI (patrol), Transition AI (attack when damaged)
+-   ✅ **Health system** - Both player and mobs can take damage and die
+-   ✅ **Resource management** - Mana regeneration (wizard) and stamina regeneration (hunter)
+
+#### 👤 **Player System**
+-   ✅ **Character classes** - Wizard (15 HP, 100 mana, fireball/heal) or Hunter (35 HP, 120 stamina, bow/dash)
+-   ✅ **Skill casting** - Q key or mouse click to use active skills
+-   ✅ **Custom spawn points** - Optional starting positions or random placement
+-   ✅ **Controls** - WASD/arrows for movement, E for interaction, Q for skills
+
+#### 🎒 **Items & Inventory**
+-   ✅ **Item types** - Keys, scrolls, readable objects
+-   ✅ **Inventory system** - Collect and carry unlimited items
+-   ✅ **Interactive items** - Pick up from ground, use keys to unlock doors
+-   ✅ **Readable content** - Scrolls and books with text content
+
+#### 🧩 **Quiz & Reward System**
+-   ✅ **Quiz types** - Single-choice, multiple-choice, free-text input
+-   ✅ **Quiz attachments** - Attach to chests, NPCs, or create standalone quiz entities
+-   ✅ **Reward system** - Items automatically added to inventory on quiz completion
+-   ✅ **Smart spawning** - Reward items don't spawn on map, only given via quizzes
+-   ✅ **Validation** - Quiz rewards must reference defined items
+-   ✅ **Completion tracking** - Quizzes can only be completed once
+
+#### 🤖 **NPC System**
+-   ✅ **Hostile NPCs** - Combat-ready mobs that attack the player
+-   ✅ **Friendly NPCs** - Non-hostile characters with dialogue
+-   ✅ **Proper animations** - NPCs display correct idle animations (not stretched sprites)
+-   ✅ **Room-based spawning** - NPCs spawn in designated rooms
+-   ✅ **Configurable stats** - Custom health and damage per mob
+
+---
+
+## Gameplay Controls
+
+Once your escape room is loaded, use these controls:
+
+### Movement
+- **WASD** or **Arrow Keys** - Move player character
+- **Mouse** - Point direction for ranged attacks
+
+### Combat
+- **Q Key** - Cast primary skill (Wizard: fireball, Hunter: arrow)
+- **Left Mouse Click** - Alternative skill casting
+- Skills consume resources: Mana (Wizard) or Stamina (Hunter)
+- Resources regenerate automatically over time
+
+### Interaction
+- **E Key** - Interact with objects (read items, talk to NPCs, open doors)
+- **Inventory** - Automatically managed, use keys from inventory to unlock doors
+
+### Quizzes
+- **Mouse Click** - Select answer in quiz interface
+- **Success** - Receive reward item directly to inventory
+- **Failure** - Quiz remains available to retry
+
+### Tips
+- Hostile mobs attack when damaged - be ready to defend yourself
+- Keys and scrolls go directly to inventory when earned from quizzes
+- Different character classes have different strengths (Wizard: magic, Hunter: agility)
+- Explore all rooms to find items and complete challenges
 
 ---
 
@@ -862,6 +923,104 @@ quiz_id:
 
 ---
 
+## Technical Implementation
+
+### Parser & Validation
+
+**ANTLR Grammar:**
+- `EscapeRoomDSL.g4` defines the complete DSL syntax
+- Supports all properties: hostile, health, damage, pattern, player class, quiz rewards
+- Lexer and parser auto-generated from grammar
+
+**Validation System:**
+- **Unique ID Check**: All entities (rooms, items, NPCs, quizzes) must have unique IDs
+- **Reference Validation**: Connections, locked_by, attached_to must reference existing entities
+- **Reward Validation**: Quiz rewards must reference defined items (throws IllegalArgumentException if not)
+- **Texture Path Check**: Warns if texture paths don't exist
+- **Parse-Time Errors**: Syntax errors reported with line numbers via ANTLR
+
+### Level Generation
+
+**DSLLevelLoader:**
+- Reads `.esc` files and converts to game level
+- Creates rectangular rooms from x/y/width/height
+- Creates custom shaped rooms from ASCII art patterns via `placeRoomWithPattern()`
+- Generates 3-tile wide L-shaped corridors between connected rooms
+- Places doors automatically at corridor entrances with wall detection
+- Locks doors based on `locked_by` property
+
+**Pattern System:**
+- `#` = wall tile
+- `.` = floor tile (walkable)
+- ` ` (space) = skip tile (leaves background)
+- Patterns placed starting at (x, y) position
+- No width/height needed when using patterns
+
+### Entity Spawning
+
+**DSLEntitySpawner:**
+- **Items**: Creates inventory items with proper classes (EscapeRoomKey for keys/scrolls)
+- **NPCs**: Spawns friendly and hostile NPCs with animations
+- **Hostile Mobs**: Uses MonsterBuilder with RandomFightAI, RandomIdleAI, SelfDefendTransition
+- **Quizzes**: Attaches to NPCs or creates standalone quiz items
+- **Smart Spawning**: Quiz reward items don't spawn on map, only given to inventory
+
+**Item Creation:**
+- Keys and scrolls use `EscapeRoomKey` class
+- Includes: itemId, displayName, description, texturePath
+- Readable items display content when interacted with
+
+### Game Systems
+
+**Core Systems (registered in DSLEscapeRoom):**
+- `InputSystem` - Processes keyboard/mouse input (use `stop()` to enable callbacks)
+- `AISystem` - Manages NPC behaviors and transitions
+- `HealthSystem` - Tracks health and handles death
+- `ProjectileSystem` - Manages fireballs, arrows, and other projectiles
+- `ManaRestoreSystem` - Regenerates mana at 10 per tick
+- `StaminaRestoreSystem` - Regenerates stamina over time
+- `CollisionSystem` - Handles entity collisions
+- `PathSystem` - Manages pathfinding for AI
+
+**AI Components:**
+- `RandomFightAI` - Chase, melee, and ranged attack behaviors
+- `RandomIdleAI` - Patrol behavior when not in combat
+- `SelfDefendTransition` - Switches mob to fight mode when damaged
+- `RangeTransition` - Switches based on proximity (less reliable than SelfDefend)
+
+### Player System
+
+**HeroFactory:**
+- Creates wizard or hunter based on DSL `player.class` property
+- **Wizard**: 15 HP, 100 mana, fireball skill (20 damage, 25 mana), heal skill
+- **Hunter**: 35 HP, 120 stamina, bow skill (15 damage, 10 stamina), dash skill
+- Both have `SkillComponent` for Q key/mouse casting
+- Both have `InputComponent` for keyboard/mouse controls
+
+**Resource Management:**
+- Mana regenerates automatically at 10 per tick
+- Stamina regenerates automatically over time
+- Skills can't be cast without sufficient resources
+
+### Quiz & Reward System
+
+**Quiz Flow:**
+1. Parse quiz definition from DSL (type, question, answers, correct_answers, reward)
+2. Validate reward item exists in items section
+3. Create quiz entity or attach to NPC
+4. Display quiz UI when player interacts (E key)
+5. Check answer correctness when submitted
+6. Execute `onSuccess` callback if correct
+7. `giveRewardToPlayer()` creates item and adds to inventory
+8. Reward items skipped during map item spawning
+
+**QuizInteractionHandler:**
+- Manages quiz UI display and interaction
+- Calls `onSuccess.run()` callback when quiz completed successfully
+- Handles both single-choice and multiple-choice quiz types
+
+---
+
 ## Version History
 
 ### Version 1.0 (October 2025)
@@ -932,31 +1091,74 @@ items:
 
 ## Version History
 
-### Version 1.0 (October 2025)
+### Version 1.0 (Current - 2025)
 
-**Features:**
+**Major Features:**
 
-- Multi-room layouts with automatic corridors
-- Locked doors with key-based unlocking
-- Inventory system for item collection
-- Single-choice and multiple-choice quizzes
-- NPC dialogue system
-- Hostile mobs with combat mechanics
-- Player and mob health/damage system
+**Level Design:**
+- Multi-room layouts with dynamic corridor generation
+- Custom room shapes using ASCII art patterns (#=wall, .=floor)
+- Flexible room connections (north, south, east, west)
+- Automatic door placement with smart wall detection
+- Locked doors with key-based unlocking system
+
+**Combat System:**
+- Hostile NPCs with health and damage stats
+- Player combat with skill casting (Q key or mouse)
+- AI behaviors: RandomFightAI (chase/melee/ranged), RandomIdleAI (patrol)
+- SelfDefendTransition AI (mobs attack when damaged)
+- Health system with death mechanics for both player and mobs
+- Resource management: Mana regeneration (10/tick) and stamina regeneration
+
+**Player System:**
+- Character class selection: Wizard (15 HP, 100 mana, fireball/heal) or Hunter (35 HP, 120 stamina, bow/dash)
+- Skill casting via Q key or mouse click
+- Custom spawn point per room
+- Full keyboard + mouse controls (WASD movement, E for interaction)
+
+**Items & Inventory:**
+- Multiple item types: keys, scrolls (documents), decorations
+- Full inventory system with add/remove/query
+- Readable items with custom content display
+- Smart item spawning (quiz rewards don't spawn on map)
+
+**Quiz & Reward System:**
+- Single-choice and multiple-choice quiz types
+- Quiz attachment to NPCs or standalone items
+- Reward validation (must reference defined items)
+- Direct-to-inventory reward delivery
+- Completion tracking and success callbacks
+
+**NPC System:**
+- Hostile NPCs with combat capabilities
+- Friendly NPCs with dialogue
+- Proper animation rendering for both types
+- Room-based spawning system
+- Configurable stats (health, damage) per NPC
+
+**Technical:**
+- ANTLR-based DSL parser with comprehensive error checking
+- Validation system: unique IDs, valid references, reward validation
+- Dynamic level generation from DSL definitions
+- Entity spawning system with texture/animation loading
+- Game systems: Input, AI, Health, Projectile, Resource regeneration
 - Readable items (scrolls, books)
 - Automatic door placement with walls
 
 **Known Limitations:**
 
-- No custom room shapes (all rectangular)
-- No animation sequences for doors
-- No conditional logic or variables
-- No timer-based events
-- No save/load system
-- No player spawn customization
-- No win condition system
-- No event triggers
-- No loot drops from hostile mobs
+The following features are not yet supported but could be added in future versions:
+
+- **Conditional Logic**: No variables or if/else logic in DSL
+- **Timer Events**: No time-based triggers or scheduled events
+- **Save/Load System**: No persistent game state between sessions
+- **Win Conditions**: No built-in victory/objective system (must use quiz completion or item collection)
+- **Event Triggers**: No room entry/exit triggers or scripted events
+- **Loot Drops**: Hostile mobs don't drop items when defeated
+- **Animation Sequences**: Doors don't have opening/closing animations
+- **Dialogue Trees**: NPCs support only single default text, no branching conversations
+- **Dynamic Difficulty**: No scaling based on player progress
+- **Minimap**: No map overview system
 
 ---
 

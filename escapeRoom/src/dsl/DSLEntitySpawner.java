@@ -55,13 +55,28 @@ public class DSLEntitySpawner {
 
     /**
      * Spawns items from the DSL definition.
+     * Items that are quiz rewards will NOT be spawned on the map.
      */
     private static void spawnItems(EscapeRoomDefinition definition) {
         System.out.println("  Spawning items...");
 
+        // Collect all items that are quiz rewards (shouldn't spawn on map)
+        java.util.Set<String> quizRewardItems = new java.util.HashSet<>();
+        for (Quiz quiz : definition.quizzes.values()) {
+            if (quiz.reward != null && !quiz.reward.isEmpty()) {
+                quizRewardItems.add(quiz.reward);
+            }
+        }
+
         for (var entry : definition.items.entrySet()) {
             String itemId = entry.getKey();
             Item itemDef = entry.getValue();
+
+            // Skip items that are quiz rewards - they'll be given as rewards instead
+            if (quizRewardItems.contains(itemId)) {
+                System.out.println("    [SKIP] Item '" + itemId + "' is a quiz reward, not spawning on map");
+                continue;
+            }
 
             try {
                 Entity itemEntity = createItemEntity(itemId, itemDef);
@@ -156,7 +171,8 @@ public class DSLEntitySpawner {
             int damage = npcDef.damage > 0 ? npcDef.damage : 1;
 
             // Use MonsterBuilder to create the entity with proper configuration
-            // Use a safe transition AI that doesn't require entity references
+            // Use SelfDefendTransition - mobs will attack when they take damage or player
+            // is in range
             npcEntity = new MonsterBuilder<>()
                     .name(npcId)
                     .texturePath(texturePath)
@@ -164,7 +180,7 @@ public class DSLEntitySpawner {
                     .collideDamage(damage)
                     .fightAI(() -> AIFactory.randomFightAI())
                     .idleAI(() -> AIFactory.randomIdleAI())
-                    .transitionAI(() -> new contrib.utils.components.ai.transition.RangeTransition(5f))
+                    .transitionAI(() -> new contrib.utils.components.ai.transition.SelfDefendTransition())
                     .build(position);
 
             System.out.println("      Health: " + health + ", Damage: " + damage + ", Texture: " + texturePath);
@@ -232,6 +248,16 @@ public class DSLEntitySpawner {
             Quiz quizDef = entry.getValue();
 
             try {
+                // Validate that reward item is defined in DSL (if reward is specified)
+                if (quizDef.reward != null && !quizDef.reward.isEmpty()) {
+                    if (!definition.items.containsKey(quizDef.reward)) {
+                        throw new IllegalArgumentException(
+                                "Quiz '" + quizId + "' has reward '" + quizDef.reward
+                                        + "' which is not defined in the items section. "
+                                        + "Please define this item first or remove the reward.");
+                    }
+                }
+
                 // Build the quiz from DSL definition
                 task.tasktype.Quiz quiz = buildQuizFromDefinition(quizDef);
 
@@ -249,7 +275,7 @@ public class DSLEntitySpawner {
                     }
 
                     // Try to find and attach to existing NPC/item entity in the game
-                    boolean attached = attachQuizToExistingEntity(quizDef.attachedTo, quiz, quizDef.reward);
+                    boolean attached = attachQuizToExistingEntity(quizDef.attachedTo, quiz, quizDef.reward, definition);
                     if (attached) {
                         System.out.println("    [OK] Attached quiz '" + quizId + "' to entity: " + quizDef.attachedTo);
                         continue;
@@ -263,7 +289,7 @@ public class DSLEntitySpawner {
                 }
 
                 // If attached_to is "chest" or not specified, create new entity
-                Entity quizEntity = createQuizEntity(quizId, quizDef);
+                Entity quizEntity = createQuizEntity(quizId, quizDef, definition);
                 if (quizEntity != null) {
                     Game.add(quizEntity);
                     System.out.println("    [OK] Spawned quiz entity: " + quizId);
@@ -281,9 +307,11 @@ public class DSLEntitySpawner {
      * @param entityName The name/ID of the entity to attach to
      * @param quiz       The quiz to attach
      * @param reward     The reward for completing the quiz
+     * @param definition The DSL definition for creating reward items
      * @return true if successfully attached, false otherwise
      */
-    private static boolean attachQuizToExistingEntity(String entityName, task.tasktype.Quiz quiz, String reward) {
+    private static boolean attachQuizToExistingEntity(String entityName, task.tasktype.Quiz quiz, String reward,
+            EscapeRoomDefinition definition) {
         // Search through all entities in the game to find matching one
         var entities = Game.allEntities().toList();
 
@@ -295,10 +323,17 @@ public class DSLEntitySpawner {
                 QuizComponent quizComponent = new QuizComponent(quiz, reward);
                 entity.add(quizComponent);
 
-                // Remove old interaction if any and add quiz interaction
+                // Remove old interaction if any and add quiz interaction with reward callback
                 entity.remove(InteractionComponent.class);
+
+                // Create a success callback that gives the reward item
+                Runnable onSuccess = null;
+                if (reward != null && !reward.isEmpty()) {
+                    onSuccess = () -> giveRewardToPlayer(reward, definition);
+                }
+
                 BiConsumer<Entity, Entity> quizInteraction = QuizInteractionHandler.createQuizInteraction(
-                        quizComponent, null, null);
+                        quizComponent, onSuccess, null);
 
                 entity.add(new InteractionComponent(
                         InteractionComponent.DEFAULT_INTERACTION_RADIUS,
@@ -315,7 +350,7 @@ public class DSLEntitySpawner {
     /**
      * Creates a quiz entity (chest or NPC) from DSL definition.
      */
-    private static Entity createQuizEntity(String quizId, Quiz quizDef) {
+    private static Entity createQuizEntity(String quizId, Quiz quizDef, EscapeRoomDefinition definition) {
         // Get position
         Point position = getRandomFloorPosition();
         if (position == null) {
@@ -326,17 +361,23 @@ public class DSLEntitySpawner {
         // Build the quiz from DSL definition
         task.tasktype.Quiz quiz = buildQuizFromDefinition(quizDef);
 
+        // Create success callback that gives the reward
+        Runnable onSuccess = null;
+        if (quizDef.reward != null && !quizDef.reward.isEmpty()) {
+            onSuccess = () -> giveRewardToPlayer(quizDef.reward, definition);
+        }
+
         // Determine entity type based on attached_to field
         if (quizDef.attachedTo != null) {
             if (quizDef.attachedTo.equals("chest")) {
-                return QuizEntityFactory.createQuizChest(position, quiz, quizDef.reward);
+                return QuizEntityFactory.createQuizChest(position, quiz, quizDef.reward, onSuccess);
             } else {
                 // Assume it's an NPC name/type
                 return QuizEntityFactory.createQuizNPC(position, quiz, quizDef.reward);
             }
         } else {
             // Default to chest if not specified
-            return QuizEntityFactory.createQuizChest(position, quiz, quizDef.reward);
+            return QuizEntityFactory.createQuizChest(position, quiz, quizDef.reward, onSuccess);
         }
     }
 
@@ -356,5 +397,85 @@ public class DSLEntitySpawner {
                 .answers(quizDef.answers != null ? quizDef.answers : List.of())
                 .correctIndices(quizDef.correctAnswers != null ? quizDef.correctAnswers : List.of())
                 .build();
+    }
+
+    /**
+     * Gives a reward item to the player by adding it to their inventory.
+     * 
+     * @param rewardId   The ID of the reward item
+     * @param definition The DSL definition containing item definitions
+     */
+    private static void giveRewardToPlayer(String rewardId, EscapeRoomDefinition definition) {
+        try {
+            // Get the hero entity
+            var heroOpt = Game.hero();
+            if (heroOpt.isEmpty()) {
+                System.err.println("[FAIL] Cannot give reward: No hero found");
+                return;
+            }
+
+            Entity hero = heroOpt.get();
+
+            // Get the hero's inventory
+            var inventoryOpt = hero.fetch(contrib.components.InventoryComponent.class);
+            if (inventoryOpt.isEmpty()) {
+                System.err.println("[FAIL] Cannot give reward: Hero has no inventory");
+                return;
+            }
+
+            contrib.components.InventoryComponent inventory = inventoryOpt.get();
+
+            // Get the item definition
+            Item itemDef = definition.items.get(rewardId);
+            if (itemDef == null) {
+                System.err.println("[FAIL] Cannot give reward: Item '" + rewardId + "' not found in definitions");
+                return;
+            }
+
+            // Create the item
+            contrib.item.Item item = createItemFromDefinition(rewardId, itemDef);
+            if (item == null) {
+                System.err.println("[FAIL] Cannot give reward: Failed to create item '" + rewardId + "'");
+                return;
+            }
+
+            // Add to inventory
+            inventory.add(item);
+            System.out.println("[OK] Gave reward '" + rewardId + "' to player");
+
+        } catch (Exception e) {
+            System.err.println("[FAIL] Error giving reward: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Creates an item instance from DSL item definition (without spawning entity).
+     * 
+     * @param itemId  The ID of the item
+     * @param itemDef The item definition
+     * @return The created item, or null if creation failed
+     */
+    private static contrib.item.Item createItemFromDefinition(String itemId, Item itemDef) {
+        // Create the appropriate item based on ID or type - same logic as
+        // createItemEntity
+        if (itemId.toLowerCase().contains("key")) {
+            // Create an EscapeRoomKey for key items
+            return new EscapeRoomKey(
+                    itemId,
+                    itemId.replace("_", " ").toUpperCase(),
+                    itemDef.description != null ? itemDef.description : "A key that unlocks something.",
+                    itemDef.texture != null ? itemDef.texture : "items/key/small_key.png");
+        } else if (itemId.toLowerCase().contains("scroll")) {
+            // Create an EscapeRoomKey for scroll items (they work like keys)
+            return new EscapeRoomKey(
+                    itemId,
+                    itemId.replace("_", " ").toUpperCase(),
+                    itemDef.description != null ? itemDef.description : "An ancient scroll.",
+                    itemDef.texture != null ? itemDef.texture : "items/book/book");
+        } else {
+            // Use berry as placeholder for other items
+            return new ItemResourceBerry();
+        }
     }
 }

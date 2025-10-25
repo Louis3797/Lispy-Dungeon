@@ -66,14 +66,12 @@ public class QuizInteractionHandler {
                                     output.append("korrekt gelöst!");
                                     quizComponent.markCompleted();
 
-                                    // Give reward if specified
+                                    // Give reward if specified - the reward message will be shown by the callback
                                     String reward = quizComponent.reward();
                                     if (reward != null && !reward.isEmpty()) {
                                         output.append("\n\nDu hast '")
                                                 .append(reward)
                                                 .append("' erhalten!");
-                                        // TODO: Implement actual item reward system
-                                        LOGGER.info("Player earned reward: " + reward);
                                     }
                                 } else {
                                     output.append("falsch gelöst.");
@@ -85,7 +83,7 @@ public class QuizInteractionHandler {
                                         success ? "Erfolg!" : "Gescheitert",
                                         () -> {
                                             if (success && onSuccess != null) {
-                                                onSuccess.run();
+                                                onSuccess.run(); // Actually give the reward!
                                             } else if (!success && onFailure != null) {
                                                 onFailure.run();
                                             }
