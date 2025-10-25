@@ -64,7 +64,7 @@ escape_room:
             answers: [Python, HTML, Java, CSS, JavaScript]
             correct_answers: [0, 2, 4]
             reward: wisdom_scroll
-            attached_to: wise_npc
+            attached_to: dude
 
     items:
         golden_key:
@@ -87,13 +87,13 @@ escape_room:
             content: "Welcome to the DSL escape room!"
 
     npcs:
-        guardian:
-            description: "A stone guardian statue"
+        dude:
+            description: "A pumpkin dude"
             texture: "character/monster/pumpkin_dude"
             location: entrance
             hostile: false
             dialogue:
-                default_text: "The statue remains silent..."
+                default_text: "The pumpkin dude remains silent..."
         
         orc_warrior:
             description: "A hostile orc warrior"
