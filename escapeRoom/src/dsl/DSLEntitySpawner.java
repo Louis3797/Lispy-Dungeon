@@ -4,6 +4,7 @@ import contrib.entities.WorldItemBuilder;
 import contrib.entities.MonsterBuilder;
 import contrib.entities.AIFactory;
 import contrib.item.concreteItem.ItemResourceBerry;
+import contrib.components.InteractionComponent;
 import core.Entity;
 import core.Game;
 import core.level.DungeonLevel;
@@ -18,6 +19,7 @@ import core.utils.components.path.SimpleIPath;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+import java.util.function.BiConsumer;
 
 /**
  * Spawns entities (items, NPCs, monsters) from the DSL definition into the
@@ -154,6 +156,7 @@ public class DSLEntitySpawner {
             int damage = npcDef.damage > 0 ? npcDef.damage : 1;
 
             // Use MonsterBuilder to create the entity with proper configuration
+            // Note: Don't use transitionAI with null entity reference to avoid NPE
             npcEntity = new MonsterBuilder<>()
                     .name(npcId)
                     .texturePath(texturePath)
@@ -161,17 +164,23 @@ public class DSLEntitySpawner {
                     .collideDamage(damage)
                     .fightAI(() -> AIFactory.randomFightAI())
                     .idleAI(() -> AIFactory.randomIdleAI())
-                    .transitionAI(() -> AIFactory.randomTransition(null))
                     .build(position);
 
             System.out.println("      Health: " + health + ", Damage: " + damage + ", Texture: " + texturePath);
         } else {
             // Create friendly NPC (non-hostile)
-            // Use a simple entity with texture but no AI or combat capabilities
+            // Use a simple entity with proper animations but no AI or combat capabilities
             String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/pumpkin_dude";
 
             try {
-                Animation idleAnimation = new Animation(new SimpleIPath(texturePath));
+                // Load animation spritesheet properly (like MonsterBuilder does)
+                java.util.Map<String, Animation> animationMap = Animation.loadAnimationSpritesheet(
+                    new SimpleIPath(texturePath));
+                
+                // Use idle_down or idle animation as the default
+                Animation idleAnimation = animationMap.getOrDefault("idle_down", 
+                    animationMap.getOrDefault("idle", animationMap.values().iterator().next()));
+                
                 npcEntity = new Entity(npcId);
                 npcEntity.add(new PositionComponent(position));
                 npcEntity.add(new DrawComponent(idleAnimation));
@@ -179,6 +188,7 @@ public class DSLEntitySpawner {
                 System.out.println("      Created friendly NPC with texture: " + texturePath);
             } catch (Exception e) {
                 System.err.println("      [FAIL] Failed to load texture for friendly NPC: " + texturePath);
+                e.printStackTrace();
                 // Fallback to simple entity without texture
                 npcEntity = new Entity(npcId);
                 npcEntity.add(new PositionComponent(position));
@@ -221,6 +231,37 @@ public class DSLEntitySpawner {
             Quiz quizDef = entry.getValue();
 
             try {
+                // Build the quiz from DSL definition
+                task.tasktype.Quiz quiz = buildQuizFromDefinition(quizDef);
+                
+                // Try to attach to existing entity if specified
+                if (quizDef.attachedTo != null && !quizDef.attachedTo.equals("chest")) {
+                    // First, validate that the entity is defined in the DSL
+                    boolean entityDefinedInDSL = definition.npcs.containsKey(quizDef.attachedTo) 
+                                                || definition.items.containsKey(quizDef.attachedTo);
+                    
+                    if (!entityDefinedInDSL) {
+                        throw new IllegalArgumentException(
+                            "Quiz '" + quizId + "' tries to attach to entity '" + quizDef.attachedTo 
+                            + "' which is not defined in the DSL. Please define this NPC or item first, "
+                            + "or use 'attached_to: chest' to create a standalone quiz chest.");
+                    }
+                    
+                    // Try to find and attach to existing NPC/item entity in the game
+                    boolean attached = attachQuizToExistingEntity(quizDef.attachedTo, quiz, quizDef.reward);
+                    if (attached) {
+                        System.out.println("    [OK] Attached quiz '" + quizId + "' to entity: " + quizDef.attachedTo);
+                        continue;
+                    } else {
+                        // Entity is defined in DSL but hasn't been spawned yet - this shouldn't happen
+                        throw new IllegalStateException(
+                            "Quiz '" + quizId + "' could not attach to '" + quizDef.attachedTo 
+                            + "'. The entity is defined but not found in the game. "
+                            + "This may be a timing issue - NPCs should be spawned before quizzes.");
+                    }
+                }
+                
+                // If attached_to is "chest" or not specified, create new entity
                 Entity quizEntity = createQuizEntity(quizId, quizDef);
                 if (quizEntity != null) {
                     Game.add(quizEntity);
@@ -228,8 +269,46 @@ public class DSLEntitySpawner {
                 }
             } catch (Exception e) {
                 System.err.println("    [FAIL] Failed to spawn quiz " + quizId + ": " + e.getMessage());
+                e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Tries to attach a quiz to an existing entity (NPC or item).
+     * 
+     * @param entityName The name/ID of the entity to attach to
+     * @param quiz The quiz to attach
+     * @param reward The reward for completing the quiz
+     * @return true if successfully attached, false otherwise
+     */
+    private static boolean attachQuizToExistingEntity(String entityName, task.tasktype.Quiz quiz, String reward) {
+        // Search through all entities in the game to find matching one
+        var entities = Game.allEntities().toList();
+        
+        for (Entity entity : entities) {
+            // Check if this is the entity we're looking for by checking its name
+            String name = entity.name();
+            if (name != null && name.equalsIgnoreCase(entityName)) {
+                // Add quiz component
+                QuizComponent quizComponent = new QuizComponent(quiz, reward);
+                entity.add(quizComponent);
+
+                // Remove old interaction if any and add quiz interaction
+                entity.remove(InteractionComponent.class);
+                BiConsumer<Entity, Entity> quizInteraction = QuizInteractionHandler.createQuizInteraction(
+                    quizComponent, null, null);
+
+                entity.add(new InteractionComponent(
+                        InteractionComponent.DEFAULT_INTERACTION_RADIUS,
+                        true,
+                        quizInteraction));
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**
