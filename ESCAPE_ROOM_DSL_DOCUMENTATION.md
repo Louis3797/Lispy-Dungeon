@@ -872,18 +872,18 @@ quiz_id:
 -   Locked doors with key-based unlocking
 -   Inventory system for item collection
 -   Single-choice and multiple-choice quizzes
--   NPC dialogue system
 -   Readable items (scrolls, books)
 -   Player customization
 -   Automatic door placement with walls
 
 **Known Limitations:**
 
--   No custom room shapes (all rectangular)
 -   No animation sequences for doors
 -   No conditional logic or variables
 -   No timer-based events
 -   No save/load system
+-   No full UI dialog system
+-   No free text questions
 
 ---
 

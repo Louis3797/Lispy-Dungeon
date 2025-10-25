@@ -75,7 +75,7 @@ public class DSLEscapeRoom {
             // Add game systems for movement and controls
             System.out.println("[OK] Adding game systems...");
             InputSystem inputSystem = new InputSystem();
-            inputSystem.run(); // Start the input system so controls work
+            inputSystem.stop(); // Activate the input system (confusing naming: stop() actually enables input)
             Game.add(inputSystem);
             Game.add(new AISystem());
             Game.add(new PathSystem());
@@ -84,6 +84,10 @@ public class DSLEscapeRoom {
             Game.add(new ProjectileSystem());
             Game.add(new HudSystem());
             Game.add(new HealthBarSystem());
+            Game.add(new ManaRestoreSystem());
+            Game.add(new StaminaRestoreSystem());
+            Game.add(new ManaBarSystem());
+            Game.add(new StaminaBarSystem());
 
             // Create and load the level from DSL
             DungeonLevel level = DSLLevelLoader.createLevel(definition);
