@@ -29,6 +29,7 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 -   ✅ **NPCs** with dialogue systems
 -   ✅ **Hostile mobs** with combat mechanics (health, damage, AI behavior)
 -   ✅ **Combat system** - Player and mobs can fight and die
+-   ✅ **Player character classes** - Choose between wizard (magic) or hunter (bow)
 -   ✅ **Quizzes** (single-choice and multiple-choice) with rewards
 -   ✅ **Inventory system** for collecting and using items
 
@@ -110,6 +111,7 @@ escape_room:
     items:           # Collectible objects (optional)
     quizzes:         # Interactive puzzles (optional)
     npcs:            # Non-player characters (optional)
+    player:          # Player character configuration (optional)
 ```
 
 ---
@@ -361,7 +363,61 @@ npcs:
 
 -   NPCs with `hostile: false` (or no hostile field) can have dialogue and be referenced in quizzes
 -   Hostile mobs ignore dialogue settings and automatically engage in combat
--   Both player and hostile mobs can die from combat---
+-   Both player and hostile mobs can die from combat
+
+---
+
+### 6. Player (Optional)
+
+Configure the player character's class and starting position.
+
+**Properties:**
+
+```dsl
+player:
+    class: wizard              # Character class: "wizard" or "hunter" (optional, default: wizard)
+    start_x: 5                # Starting X position (optional, uses random floor position if not set)
+    start_y: 5                # Starting Y position (optional, uses random floor position if not set)
+```
+
+**Character Classes:**
+
+| Class    | Health | Resources   | Primary Skill        | Secondary Skill | Description                                        |
+| -------- | ------ | ----------- | -------------------- | --------------- | -------------------------------------------------- |
+| `wizard` | 15 HP  | 100 Mana    | Fireball (Q key)     | Self Heal       | Magic-focused ranged attacks and healing abilities |
+| `hunter` | 35 HP  | 120 Stamina | Bow & Arrows (Q key) | Dash            | Physical ranged attacks with higher durability     |
+
+**Controls:**
+
+-   **Q Key** or **Left Mouse Click**: Use primary skill/attack
+-   **WASD/Arrow Keys**: Move character
+-   **E Key**: Interact with objects and NPCs
+
+**Example:**
+
+```dsl
+# Option 1: Specify only class (position will be random)
+player:
+    class: hunter
+
+# Option 2: Specify class and starting position
+player:
+    class: wizard
+    start_x: 5
+    start_y: 5
+
+# Option 3: Omit player section entirely (defaults to wizard, random position)
+# No player section needed - uses defaults
+```
+
+**Notes:**
+
+-   If `player` section is omitted, defaults to `wizard` class with random starting position
+-   Starting position (`start_x`, `start_y`) is optional - will use random floor tile if not specified
+-   Character class determines combat style, starting skills, and stats
+-   Both classes have full combat capabilities to fight hostile mobs
+
+---
 
 ## Examples
 
