@@ -4,12 +4,17 @@ import dsl.parser.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import core.utils.logging.CustomLogLevel;
+
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Interprets the parsed escape room DSL and builds the game structure.
  */
 public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
+
+    private static final Logger LOGGER = Logger.getLogger(DoorManager.class.getSimpleName());
 
     private EscapeRoomDefinition definition;
     private String currentId;
@@ -28,7 +33,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void enterEscape_room(EscapeRoomDSLParser.Escape_roomContext ctx) {
-        System.out.println("DEBUG: Entering escape_room");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering escape_room");
     }
 
     @Override
@@ -64,15 +69,15 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
             definition.metadata.maxTime = Integer.parseInt(ctx.INT().getText());
         }
 
-        System.out.println("DEBUG: Found title: " + definition.metadata.title);
-        System.out.println("DEBUG: Found description: " + definition.metadata.description);
-        System.out.println("DEBUG: Found difficulty: " + definition.metadata.difficulty);
-        System.out.println("DEBUG: Found max_time: " + definition.metadata.maxTime);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found title: " + definition.metadata.title);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found description: " + definition.metadata.description);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found difficulty: " + definition.metadata.difficulty);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found max_time: " + definition.metadata.maxTime);
     }
 
     @Override
     public void enterRooms(EscapeRoomDSLParser.RoomsContext ctx) {
-        System.out.println("DEBUG: Entering rooms section");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering rooms section");
         if (definition.rooms == null) {
             definition.rooms = new HashMap<>();
         }
@@ -84,7 +89,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         if (ctx.ID() != null && !ctx.ID().isEmpty()) {
             currentId = ctx.ID(0).getText();
             definition.rooms.put(currentId, currentRoom);
-            System.out.println("DEBUG: Found room: " + currentId);
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found room: " + currentId);
 
             // Parse room properties
             if (ctx.STRING() != null && !ctx.STRING().isEmpty()) {
@@ -101,7 +106,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
                     pattern = pattern.substring(3, pattern.length() - 3);
                 }
                 currentRoom.pattern = pattern;
-                System.out.println("DEBUG: Room has custom pattern (ASCII art)");
+                LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Room has custom pattern (ASCII art)");
             }
 
             // Parse integers (x, y, width, height)
@@ -155,7 +160,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void enterItems(EscapeRoomDSLParser.ItemsContext ctx) {
-        System.out.println("DEBUG: Entering items section");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering items section");
         if (definition.items == null) {
             definition.items = new HashMap<>();
         }
@@ -167,7 +172,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         if (ctx.ID() != null) {
             currentId = ctx.ID().getText();
             definition.items.put(currentId, currentItem);
-            System.out.println("DEBUG: Found item: " + currentId);
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found item: " + currentId);
         }
     }
 
@@ -200,7 +205,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void enterNpcs(EscapeRoomDSLParser.NpcsContext ctx) {
-        System.out.println("DEBUG: Entering npcs section");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering npcs section");
         if (definition.npcs == null) {
             definition.npcs = new HashMap<>();
         }
@@ -212,7 +217,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         if (ctx.ID() != null) {
             currentId = ctx.ID().getText();
             definition.npcs.put(currentId, currentNPC);
-            System.out.println("DEBUG: Found npc: " + currentId);
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found npc: " + currentId);
         }
     }
 
@@ -247,7 +252,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void enterPlayer(EscapeRoomDSLParser.PlayerContext ctx) {
-        System.out.println("DEBUG: Entering player section");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering player section");
         definition.player = new Player();
 
         String text = ctx.getText();
@@ -255,7 +260,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         // Parse class
         if (ctx.PLAYER_CLASS() != null) {
             definition.player.characterClass = ctx.PLAYER_CLASS().getText();
-            System.out.println("DEBUG: Player class: " + definition.player.characterClass);
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Player class: " + definition.player.characterClass);
         }
 
         // Parse start_x
@@ -271,7 +276,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void enterQuizzes(EscapeRoomDSLParser.QuizzesContext ctx) {
-        System.out.println("DEBUG: Entering quizzes section");
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering quizzes section");
         if (definition.quizzes == null) {
             definition.quizzes = new HashMap<>();
         }
@@ -283,7 +288,7 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         if (ctx.ID() != null) {
             currentId = ctx.ID().getText();
             definition.quizzes.put(currentId, currentQuiz);
-            System.out.println("DEBUG: Found quiz: " + currentId);
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found quiz: " + currentId);
         }
     }
 

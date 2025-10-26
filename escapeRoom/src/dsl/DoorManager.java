@@ -10,11 +10,15 @@ import core.utils.Point;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * Manages doors in the escape room, including locked doors that require items.
  */
 public class DoorManager {
+
+    private static final Logger LOGGER = Logger.getLogger(DoorManager.class.getSimpleName());
 
     // Configuration constants
     private static final float DOOR_INTERACTION_RADIUS = 2.0f;
@@ -25,31 +29,61 @@ public class DoorManager {
 
     /**
      * Register a door with an ID.
+     * 
+     * @param id   The unique identifier for the door
+     * @param door The door tile to register
+     * @throws NullPointerException if id or door is null
      */
     public static void registerDoor(String id, DoorTile door) {
+        Objects.requireNonNull(id, "id cannot be null");
+        Objects.requireNonNull(door, "door cannot be null");
+
         doors.put(id, door);
     }
 
     /**
      * Lock a door and associate it with a required item ID.
+     * 
+     * @param door           The door tile to lock
+     * @param requiredItemId The ID of the item required to unlock
+     * @throws NullPointerException if door or requiredItemId is null
      */
     public static void lockDoor(DoorTile door, String requiredItemId) {
+        Objects.requireNonNull(door, "door cannot be null");
+        Objects.requireNonNull(requiredItemId, "requiredItemId cannot be null");
+
         door.close();
         lockedDoors.put(door, requiredItemId);
-        System.out.println("  [LOCKED] Locked door (requires: " + requiredItemId + ")");
+        LOGGER.info("  [LOCKED] Locked door (requires: " + requiredItemId + ")");
     }
 
     /**
      * Register a door entity for visual representation.
+     * 
+     * @param door       The door tile
+     * @param doorEntity The entity representing the door
+     * @throws NullPointerException if door or doorEntity is null
      */
     public static void registerDoorEntity(DoorTile door, Entity doorEntity) {
+        Objects.requireNonNull(door, "door cannot be null");
+        Objects.requireNonNull(doorEntity, "doorEntity cannot be null");
+
         doorEntities.put(door, doorEntity);
     }
 
     /**
      * Create an interaction entity for a locked door.
+     * 
+     * @param door           The door tile
+     * @param requiredItemId The ID of the required item
+     * @param position       The position for the interaction entity
+     * @return The created door interaction entity
+     * @throws NullPointerException if any parameter is null
      */
     public static Entity createDoorInteraction(DoorTile door, String requiredItemId, Point position) {
+        Objects.requireNonNull(door, "door cannot be null");
+        Objects.requireNonNull(requiredItemId, "requiredItemId cannot be null");
+        Objects.requireNonNull(position, "position cannot be null");
         Entity doorEntity = new Entity("LockedDoor");
 
         doorEntity.add(new InteractionComponent(
@@ -93,8 +127,8 @@ public class DoorManager {
                                 // Unlock the door
                                 door.open();
                                 lockedDoors.remove(door);
-                                // Don't remove the key - it stays in inventory for reuse
-                                System.out.println("  🔓 Unlocked door with: " + requiredItemId);
+                                // Don't remove the key it stays in inventory for reuse
+                                LOGGER.info("Unlocked door with: " + requiredItemId);
                                 return true;
                             }
                         }
@@ -113,7 +147,7 @@ public class DoorManager {
         if (requiredItem != null && requiredItem.equals(itemId)) {
             door.open();
             lockedDoors.remove(door);
-            System.out.println("  🔓 Unlocked door with: " + itemId);
+            LOGGER.info("Unlocked door with: " + itemId);
             updateDoorVisuals(door);
             return true;
         }

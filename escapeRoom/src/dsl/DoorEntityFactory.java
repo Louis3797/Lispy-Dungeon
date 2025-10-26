@@ -10,8 +10,8 @@ import core.components.DrawComponent;
 import core.components.PositionComponent;
 import core.level.elements.tile.DoorTile;
 import core.utils.Point;
-import core.utils.components.draw.animation.Animation;
-import core.utils.components.path.SimpleIPath;
+
+import dsl.utils.AnimationFactory;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class DoorEntityFactory {
         // Visual component showing it's closed/locked
         String closedTexture = "dungeon/default/door/" + direction + "_closed.png";
         doorEntity.add(new PositionComponent(position));
-        doorEntity.add(new DrawComponent(new Animation(new SimpleIPath(closedTexture))));
+        doorEntity.add(new DrawComponent(AnimationFactory.createSingleFrameAnimation(closedTexture)));
         doorEntity.add(new CollideComponent());
 
         // Interaction to check inventory and unlock
@@ -50,7 +50,7 @@ public class DoorEntityFactory {
                 (entity, hero) -> {
                     if (door.isOpen()) {
                         DialogUtils.showTextPopup(
-                                "[OK] The door is now open!",
+                                "The door is now open!",
                                 "Door");
                     } else {
                         // Check hero's inventory for the required key
@@ -109,7 +109,7 @@ public class DoorEntityFactory {
         // Visual component showing it's open
         String openTexture = "dungeon/default/door/" + direction + ".png";
         doorEntity.add(new PositionComponent(position));
-        doorEntity.add(new DrawComponent(new Animation(new SimpleIPath(openTexture))));
+        doorEntity.add(new DrawComponent(AnimationFactory.createSingleFrameAnimation(openTexture)));
         // No CollideComponent - player can walk through open doors
 
         doorEntity.add(new InteractionComponent(

@@ -18,12 +18,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Starter for running a DSL-defined escape room.
  * Loads and parses the DSL file, generates the level, and starts the game.
  */
 public class DSLEscapeRoom {
+
+    private static final Logger LOGGER = Logger.getLogger(DSLEscapeRoom.class.getSimpleName());
 
     private static final String DSL_FILE = "escapeRoom/src/demoDungeon/level/demo_room.esc";
 
@@ -32,7 +35,7 @@ public class DSLEscapeRoom {
         Game.initBaseLogger(Level.WARNING);
 
         // Parse the DSL file
-        System.out.println("=== Loading Escape Room DSL ===");
+        LOGGER.info("=== Loading Escape Room DSL ===");
         EscapeRoomDefinition definition = parseDSL(DSL_FILE);
 
         // Configure game setup
@@ -61,7 +64,7 @@ public class DSLEscapeRoom {
         // Interpret
         EscapeRoomDefinition definition = EscapeRoomInterpreter.interpret(tree);
 
-        System.out.println("[OK] Parsed: " + definition);
+        LOGGER.info("Parsed: " + definition);
         return definition;
     }
 
@@ -70,10 +73,10 @@ public class DSLEscapeRoom {
      */
     private static void configureGame(EscapeRoomDefinition definition) {
         Game.userOnSetup(() -> {
-            System.out.println("\n=== Setting up Escape Room ===");
+            LOGGER.info("\n=== Setting up Escape Room ===");
 
             // Add game systems for movement and controls
-            System.out.println("[OK] Adding game systems...");
+            LOGGER.info("Adding game systems...");
             InputSystem inputSystem = new InputSystem();
             inputSystem.stop(); // Activate the input system (confusing naming: stop() actually enables input)
             Game.add(inputSystem);
@@ -97,7 +100,7 @@ public class DSLEscapeRoom {
             DSLLevelLoader.spawnDoorEntities(definition);
 
             // Create and add hero at a safe floor position
-            System.out.println("[OK] Creating hero...");
+            LOGGER.info(" Creating hero...");
             try {
                 // Determine character class from DSL or use default (WIZARD)
                 contrib.entities.CharacterClass characterClass = contrib.entities.CharacterClass.WIZARD;
@@ -108,7 +111,7 @@ public class DSLEscapeRoom {
                     } else if ("wizard".equals(classStr)) {
                         characterClass = contrib.entities.CharacterClass.WIZARD;
                     }
-                    System.out.println("  Player class: " + characterClass);
+                    LOGGER.info("Player class: " + characterClass);
                 }
 
                 Entity hero = HeroFactory.newHero(characterClass);
@@ -119,10 +122,10 @@ public class DSLEscapeRoom {
                 Point heroPosition = useDSLPosition ? new Point(definition.player.startX, definition.player.startY)
                         : DSLEntitySpawner.getRandomFloorPosition();
                 if (useDSLPosition) {
-                    System.out.println("  Starting position from DSL: (" + definition.player.startX + ", "
+                    LOGGER.info("Starting position from DSL: (" + definition.player.startX + ", "
                             + definition.player.startY + ")");
                 } else {
-                    System.out.println("  Using random starting position");
+                    LOGGER.info("Using random starting position");
                 }
 
                 if (heroPosition != null) {
@@ -130,16 +133,16 @@ public class DSLEscapeRoom {
                 }
                 Game.add(hero);
             } catch (IOException e) {
-                System.err.println("Failed to create hero: " + e.getMessage());
+                LOGGER.severe("Failed to create hero: " + e.getMessage());
             }
 
             // Spawn items, NPCs, and monsters from DSL
             DSLEntitySpawner.spawnEntities(definition);
 
-            System.out.println("[OK] Escape room setup complete!");
-            System.out.println("  Use WASD or arrow keys to move");
-            System.out.println("  Press E to interact with chests and NPCs");
-            System.out.println();
+            LOGGER.info("Escape room setup complete!");
+            LOGGER.info("Use WASD or arrow keys to move");
+            LOGGER.info("Press E to interact with chests and NPCs");
+
         });
 
         // Basic game configuration

@@ -4,18 +4,28 @@ import dsl.parser.EscapeRoomDSLLexer;
 import dsl.parser.EscapeRoomDSLParser;
 import dsl.EscapeRoomInterpreter;
 import org.antlr.v4.runtime.*;
+
+import core.Game;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Main class to parse and run the Escape Room DSL.
  */
 public class DSLParserMain {
 
+    private static final Logger LOGGER = Logger.getLogger(DSLParserMain.class.getSimpleName());
+
     public static void main(String[] args) throws IOException {
+
+        Game.initBaseLogger(Level.INFO);
+
         if (args.length < 1) {
-            System.err.println("Usage: java DSLParserMain <dsl-file>");
+            LOGGER.warning("Usage: java DSLParserMain <dsl-file>");
             System.exit(1);
         }
 
@@ -36,22 +46,19 @@ public class DSLParserMain {
         EscapeRoomDSLParser.StartContext tree = parser.start();
 
         // Print the parse tree (for debugging)
-        System.out.println("=== Parse Tree ===");
-        System.out.println(tree.toStringTree(parser));
-        System.out.println();
+        LOGGER.info("=== Parse Tree ===");
+        LOGGER.info(tree.toStringTree(parser));
 
         // Interpret the parsed tree (ANTLR approach - has indentation issues)
-        System.out.println("=== ANTLR Interpreter (may have issues) ===");
+        LOGGER.info("=== ANTLR Interpreter (may have issues) ===");
         Object definition = EscapeRoomInterpreter.interpret(tree);
-        System.out.println(definition);
-        System.out.println();
+        LOGGER.info(definition.toString());
 
         // Use simple text parser as a workaround
-        System.out.println("=== Simple Text Parser (working) ===");
+        LOGGER.info("=== Simple Text Parser (working) ===");
         Object simpleDef = dsl.SimpleEscapeRoomParser.parse(input);
-        System.out.println(simpleDef);
-        System.out.println();
+        LOGGER.info(simpleDef.toString());
 
-        System.out.println("[OK] DSL parsing and interpretation complete!");
+        LOGGER.info("DSL parsing and interpretation complete!");
     }
 }

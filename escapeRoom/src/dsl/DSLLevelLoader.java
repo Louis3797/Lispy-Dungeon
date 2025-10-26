@@ -11,13 +11,16 @@ import core.utils.Point;
 import core.components.PositionComponent;
 import core.components.DrawComponent;
 import contrib.components.CollideComponent;
-import core.utils.components.draw.animation.Animation;
-import core.utils.components.path.SimpleIPath;
+import core.utils.logging.CustomLogLevel;
+
+import dsl.utils.AnimationFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * Converts a parsed EscapeRoomDefinition into a playable DungeonLevel.
@@ -29,6 +32,8 @@ import java.util.Map;
  * - Locked doors requiring items
  */
 public class DSLLevelLoader {
+
+    private static final Logger LOGGER = Logger.getLogger(DSLLevelLoader.class.getSimpleName());
 
     // Configuration constants for level generation
     private static final int CORRIDOR_WIDTH = 3;
@@ -65,8 +70,11 @@ public class DSLLevelLoader {
      * 
      * @param definition The parsed escape room definition
      * @return A playable dungeon level
+     * @throws NullPointerException if definition is null
      */
     public static DungeonLevel createLevel(EscapeRoomDefinition definition) {
+        Objects.requireNonNull(definition, "definition cannot be null");
+
         // Clear previous door data
         doorPositions.clear();
         DoorManager.clear();
@@ -77,7 +85,7 @@ public class DSLLevelLoader {
         // Create the level with the layout
         DungeonLevel level = new DungeonLevel(layout, DesignLabel.DEFAULT);
 
-        System.out.println("[OK] Level created: " + definition.getTitle());
+        LOGGER.info("Level created: " + definition.getTitle());
 
         return level;
     }
@@ -87,13 +95,15 @@ public class DSLLevelLoader {
      * Must be called after Game.currentLevel() is set.
      * 
      * @param definition The escape room definition with room/door data
+     * @throws NullPointerException if definition is null
      */
     public static void spawnDoorEntities(EscapeRoomDefinition definition) {
-        System.out.println("=== Spawning Door Entities ===");
+        Objects.requireNonNull(definition, "definition cannot be null");
+        LOGGER.info("=== Spawning Door Entities ===");
 
         var levelOpt = Game.currentLevel();
         if (levelOpt.isEmpty()) {
-            System.err.println("  [FAIL] No level loaded, cannot spawn doors");
+            LOGGER.warning("No level loaded, cannot spawn doors");
             return;
         }
 
@@ -107,7 +117,7 @@ public class DSLLevelLoader {
                 Room room = entry.getValue();
                 if (room.lockedBy != null && !room.lockedBy.isEmpty()) {
                     roomLocks.put(roomId, room.lockedBy);
-                    System.out.println("  [LOCKED] Room '" + roomId + "' requires: " + room.lockedBy);
+                    LOGGER.info("Room '" + roomId + "' requires: " + room.lockedBy);
                 }
             }
         }
@@ -141,7 +151,8 @@ public class DSLLevelLoader {
                     Entity wallEntity = new Entity("DoorWall");
                     wallEntity.add(new PositionComponent(wallPos));
                     wallEntity.add(new CollideComponent());
-                    wallEntity.add(new DrawComponent(new Animation(new SimpleIPath("dungeon/default/wall/side.png"))));
+                    wallEntity.add(new DrawComponent(AnimationFactory.createSingleFrameAnimation(
+                            "dungeon/default/wall/side.png")));
 
                     Game.add(wallEntity);
                     wallEntities.add(wallEntity);
@@ -171,11 +182,14 @@ public class DSLLevelLoader {
             }
         }
 
-        System.out.println("  [OK] Spawned " + doorsSpawned + " door entities with corridor walls");
+        LOGGER.info("Spawned " + doorsSpawned + " door entities with corridor walls");
     }
 
     /**
      * Generates a 2D level layout from room definitions.
+     * 
+     * @param definition The escape room definition containing room layouts
+     * @return A 2D array representing the level layout
      */
     private static LevelElement[][] generateLayout(EscapeRoomDefinition definition) {
         if (definition.rooms == null || definition.rooms.isEmpty()) {
@@ -211,8 +225,7 @@ public class DSLLevelLoader {
         // Generate corridors between connected rooms
         generateCorridors(layout, definition);
 
-        System.out.println("[OK] Generated level layout: " + maxX + "x" + maxY +
-                " with " + definition.rooms.size() + " room(s)");
+        LOGGER.info("Generated level layout: " + maxX + "x" + maxY + " with " + definition.rooms.size() + " room(s)");
 
         // Debug: print layout
         printLayout(layout);
@@ -222,9 +235,11 @@ public class DSLLevelLoader {
 
     /**
      * Prints the layout for debugging.
+     * 
+     * @param layout The level layout to print
      */
     private static void printLayout(LevelElement[][] layout) {
-        System.out.println("\n=== Level Layout ===");
+        LOGGER.log(CustomLogLevel.DEBUG, "\n=== Level Layout ===");
         for (int y = 0; y < layout.length && y < DEBUG_PRINT_MAX_HEIGHT; y++) {
             StringBuilder line = new StringBuilder();
             for (int x = 0; x < layout[0].length && x < DEBUG_PRINT_MAX_WIDTH; x++) {
@@ -235,13 +250,16 @@ public class DSLLevelLoader {
                     default -> line.append("?");
                 }
             }
-            System.out.println(line);
+            LOGGER.log(CustomLogLevel.DEBUG, line.toString());
         }
-        System.out.println("===================\n");
+        LOGGER.log(CustomLogLevel.DEBUG, "===================\n");
     }
 
     /**
      * Generates corridors between connected rooms.
+     * 
+     * @param layout     The level layout to modify
+     * @param definition The escape room definition containing room connections
      */
     private static void generateCorridors(LevelElement[][] layout, EscapeRoomDefinition definition) {
         if (definition.rooms == null)
@@ -260,7 +278,7 @@ public class DSLLevelLoader {
                 Room targetRoom = definition.rooms.get(targetRoomId);
                 if (targetRoom != null) {
                     createCorridor(layout, roomId, room, targetRoomId, targetRoom);
-                    System.out.println("  [OK] Connected '" + roomId + "' to '" + targetRoomId + "'");
+                    LOGGER.info("Connected '" + roomId + "' to '" + targetRoomId + "'");
                 }
             }
         }
@@ -325,6 +343,12 @@ public class DSLLevelLoader {
     /**
      * Marks a door position in the wall of a room and tracks it for entity
      * spawning.
+     * 
+     * @param layout    The level layout to modify
+     * @param roomId    The ID of the room
+     * @param room      The room definition
+     * @param corridorX The X coordinate where corridor connects
+     * @param corridorY The Y coordinate where corridor connects
      */
     private static void markDoorInWall(LevelElement[][] layout, String roomId, Room room, int corridorX,
             int corridorY) {
@@ -344,9 +368,8 @@ public class DSLLevelLoader {
                 layout[corridorY][roomLeft] = LevelElement.DOOR;
                 doorPos = new Point(roomLeft, corridorY);
                 direction = "left"; // Door faces left (player comes from left/west)
-                System.out.println(
-                        "  [DOOR] Marked door at LEFT wall of '" + roomId + "' at (" + roomLeft + "," + corridorY
-                                + ")");
+                LOGGER.log(CustomLogLevel.DEBUG,
+                        "Marked door at LEFT wall of '" + roomId + "' at (" + roomLeft + "," + corridorY + ")");
             }
         }
         // Right wall (corridor approaching from the east)
@@ -355,9 +378,8 @@ public class DSLLevelLoader {
                 layout[corridorY][roomRight] = LevelElement.DOOR;
                 doorPos = new Point(roomRight, corridorY);
                 direction = "right"; // Door faces right (player comes from right/east)
-                System.out.println(
-                        "  [DOOR] Marked door at RIGHT wall of '" + roomId + "' at (" + roomRight + "," + corridorY
-                                + ")");
+                LOGGER.log(CustomLogLevel.DEBUG,
+                        "Marked door at RIGHT wall of '" + roomId + "' at (" + roomRight + "," + corridorY + ")");
             }
         }
         // Top wall (corridor approaching from the north)
@@ -366,8 +388,8 @@ public class DSLLevelLoader {
                 layout[roomTop][corridorX] = LevelElement.DOOR;
                 doorPos = new Point(corridorX, roomTop);
                 direction = "top"; // Door faces top (player comes from top/north)
-                System.out.println(
-                        "  [DOOR] Marked door at TOP wall of '" + roomId + "' at (" + corridorX + "," + roomTop + ")");
+                LOGGER.log(CustomLogLevel.DEBUG,
+                        "Marked door at TOP wall of '" + roomId + "' at (" + corridorX + "," + roomTop + ")");
             }
         }
         // Bottom wall (corridor approaching from the south)
@@ -376,8 +398,8 @@ public class DSLLevelLoader {
                 layout[roomBottom][corridorX] = LevelElement.DOOR;
                 doorPos = new Point(corridorX, roomBottom);
                 direction = "bottom"; // Door faces bottom (player comes from bottom/south)
-                System.out.println("  [DOOR] Marked door at BOTTOM wall of '" + roomId + "' at (" + corridorX + ","
-                        + roomBottom + ")");
+                LOGGER.log(CustomLogLevel.DEBUG,
+                        "Marked door at BOTTOM wall of '" + roomId + "' at (" + corridorX + "," + roomBottom + ")");
             }
         }
 
@@ -387,13 +409,16 @@ public class DSLLevelLoader {
             String requiredItem = room.lockedBy;
             doorPositions.add(new DoorInfo(doorPos, roomId, requiredItem, direction));
         } else {
-            System.out.println("  ⚠️  WARNING: Could not mark door for room '" + roomId +
-                    "' at corridor (" + corridorX + "," + corridorY + ")");
+            LOGGER.warning(
+                    "Could not mark door for room '" + roomId + "' at corridor (" + corridorX + "," + corridorY + ")");
         }
     }
 
     /**
      * Places a single room in the layout.
+     * 
+     * @param layout The level layout to modify
+     * @param room   The room to place
      */
     private static void placeRoom(LevelElement[][] layout, Room room) {
         int startX = room.x > 0 ? room.x : 1;
@@ -425,8 +450,7 @@ public class DSLLevelLoader {
         // Add openings in walls where corridors should connect
         // (openings are created automatically by corridor generation now)
 
-        System.out.println("  [OK] Placed room at (" + startX + "," + startY +
-                ") size " + width + "x" + height);
+        LOGGER.log(CustomLogLevel.DEBUG, "Placed room at (" + startX + "," + startY + ") size " + width + "x" + height);
     }
 
     /**
@@ -436,6 +460,11 @@ public class DSLLevelLoader {
      * '.' = floor
      * ' ' = skip (leave as is)
      * 'D' = door placeholder
+     * 
+     * @param layout The level layout to modify
+     * @param room   The room with pattern to place
+     * @param startX The starting X coordinate
+     * @param startY The starting Y coordinate
      */
     private static void placeRoomWithPattern(LevelElement[][] layout, Room room, int startX, int startY) {
         String pattern = room.pattern.trim();
@@ -446,8 +475,9 @@ public class DSLLevelLoader {
             maxWidth = Math.max(maxWidth, line.length());
         }
 
-        System.out.println("  [OK] Placed custom room at (" + startX + "," + startY +
-                ") size " + maxWidth + "x" + lines.length + " (ASCII pattern)");
+        LOGGER.log(CustomLogLevel.DEBUG,
+                "Placed custom room at (" + startX + "," + startY + ") size " + maxWidth + "x" + lines.length
+                        + " (ASCII pattern)");
 
         // Place tiles according to pattern
         for (int patternY = 0; patternY < lines.length; patternY++) {
@@ -487,6 +517,8 @@ public class DSLLevelLoader {
 
     /**
      * Creates a default fallback layout if no rooms are defined.
+     * 
+     * @return A default level layout
      */
     private static LevelElement[][] createDefaultLayout() {
         LevelElement[][] layout = new LevelElement[DEFAULT_LAYOUT_SIZE][DEFAULT_LAYOUT_SIZE];
@@ -499,8 +531,8 @@ public class DSLLevelLoader {
                 }
             }
         }
-        System.out.println(
-                "⚠ Using default " + DEFAULT_LAYOUT_SIZE + "x" + DEFAULT_LAYOUT_SIZE + " layout (no rooms defined)");
+        LOGGER.warning(
+                "Using default " + DEFAULT_LAYOUT_SIZE + "x" + DEFAULT_LAYOUT_SIZE + " layout (no rooms defined)");
         return layout;
     }
 }

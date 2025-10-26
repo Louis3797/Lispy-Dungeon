@@ -1,8 +1,8 @@
 package dsl;
 
 import contrib.item.Item;
-import core.utils.components.draw.animation.Animation;
-import core.utils.components.path.SimpleIPath;
+
+import dsl.utils.AnimationFactory;
 
 /**
  * A key item for the escape room that can be used to unlock doors.
@@ -23,7 +23,9 @@ public class EscapeRoomKey extends Item {
         super(
                 displayName != null ? displayName : "Key",
                 description != null ? description : "A key that unlocks something.",
-                new Animation(new SimpleIPath(texturePath != null ? texturePath : "items/key/small_key.png")));
+                AnimationFactory.createSingleFrameAnimationWithFallback(
+                        texturePath != null ? texturePath : "items/key/small_key.png",
+                        "items/key/small_key.png"));
         this.keyId = keyId;
     }
 
