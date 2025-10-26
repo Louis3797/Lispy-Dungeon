@@ -16,6 +16,9 @@ import java.util.Map;
  */
 public class DoorManager {
 
+    // Configuration constants
+    private static final float DOOR_INTERACTION_RADIUS = 2.0f;
+
     private static final Map<String, DoorTile> doors = new HashMap<>();
     private static final Map<DoorTile, String> lockedDoors = new HashMap<>();
     private static final Map<DoorTile, Entity> doorEntities = new HashMap<>();
@@ -50,8 +53,8 @@ public class DoorManager {
         Entity doorEntity = new Entity("LockedDoor");
 
         doorEntity.add(new InteractionComponent(
-                2.0f, // interaction radius
-                true, // repeatable
+                DOOR_INTERACTION_RADIUS,
+                true,
                 (entity, hero) -> {
                     // Check if door is already open
                     if (door.isOpen()) {

@@ -30,6 +30,15 @@ import java.util.Map;
  */
 public class DSLLevelLoader {
 
+    // Configuration constants for level generation
+    private static final int CORRIDOR_WIDTH = 3;
+    private static final int CORRIDOR_WALL_COUNT = 2; // Walls on each side of door (-2 to +2)
+    private static final int DEFAULT_ROOM_SIZE = 10;
+    private static final int LAYOUT_PADDING = 2;
+    private static final int DEFAULT_LAYOUT_SIZE = 15;
+    private static final int DEBUG_PRINT_MAX_HEIGHT = 25;
+    private static final int DEBUG_PRINT_MAX_WIDTH = 40;
+
     // Store door positions for entity spawning
     private static final List<DoorInfo> doorPositions = new ArrayList<>();
 
@@ -38,6 +47,7 @@ public class DSLLevelLoader {
      */
     private static class DoorInfo {
         Point position;
+        @SuppressWarnings("unused") // Kept for debugging purposes
         String roomId;
         String requiredItemId; // null if unlocked
         String direction; // "top", "bottom", "left", "right"
@@ -112,8 +122,8 @@ public class DSLLevelLoader {
                 List<Entity> wallEntities = new ArrayList<>();
 
                 // Spawn wall entities on both sides to block the corridor
-                // Spawn walls to fully block corridor (extend one extra tile on each side)
-                for (int i = -2; i <= 2; i++) {
+                // Spawn walls to fully block corridor (extend based on CORRIDOR_WALL_COUNT)
+                for (int i = -CORRIDOR_WALL_COUNT; i <= CORRIDOR_WALL_COUNT; i++) {
                     if (i == 0)
                         continue; // Skip center (that's where the door is)
 
@@ -175,15 +185,15 @@ public class DSLLevelLoader {
         // Calculate required grid size based on room positions
         int maxX = 0, maxY = 0;
         for (Room room : definition.rooms.values()) {
-            int roomEndX = room.x + (room.width > 0 ? room.width : 10);
-            int roomEndY = room.y + (room.height > 0 ? room.height : 10);
+            int roomEndX = room.x + (room.width > 0 ? room.width : DEFAULT_ROOM_SIZE);
+            int roomEndY = room.y + (room.height > 0 ? room.height : DEFAULT_ROOM_SIZE);
             maxX = Math.max(maxX, roomEndX);
             maxY = Math.max(maxY, roomEndY);
         }
 
         // Add padding
-        maxX += 2;
-        maxY += 2;
+        maxX += LAYOUT_PADDING;
+        maxY += LAYOUT_PADDING;
 
         // Initialize layout with walls
         LevelElement[][] layout = new LevelElement[maxY][maxX];
@@ -215,9 +225,9 @@ public class DSLLevelLoader {
      */
     private static void printLayout(LevelElement[][] layout) {
         System.out.println("\n=== Level Layout ===");
-        for (int y = 0; y < layout.length && y < 25; y++) {
+        for (int y = 0; y < layout.length && y < DEBUG_PRINT_MAX_HEIGHT; y++) {
             StringBuilder line = new StringBuilder();
-            for (int x = 0; x < layout[0].length && x < 40; x++) {
+            for (int x = 0; x < layout[0].length && x < DEBUG_PRINT_MAX_WIDTH; x++) {
                 switch (layout[y][x]) {
                     case WALL -> line.append("█");
                     case FLOOR -> line.append("·");
@@ -267,15 +277,12 @@ public class DSLLevelLoader {
         int x2 = room2.x + room2.width / 2;
         int y2 = room2.y + room2.height / 2;
 
-        // Corridor width (2-3 tiles)
-        int corridorWidth = 3;
-
-        // Create L-shaped corridor (horizontal then vertical) with width
+        // Create L-shaped corridor (horizontal then vertical) with CORRIDOR_WIDTH
         // Horizontal segment
         int startX = Math.min(x1, x2);
         int endX = Math.max(x1, x2);
         for (int x = startX; x <= endX && x < layout[0].length; x++) {
-            for (int offset = -(corridorWidth / 2); offset <= (corridorWidth / 2); offset++) {
+            for (int offset = -(CORRIDOR_WIDTH / 2); offset <= (CORRIDOR_WIDTH / 2); offset++) {
                 int y = y1 + offset;
                 if (y >= 0 && y < layout.length && x >= 0) {
                     layout[y][x] = LevelElement.FLOOR;
@@ -287,7 +294,7 @@ public class DSLLevelLoader {
         int startY = Math.min(y1, y2);
         int endY = Math.max(y1, y2);
         for (int y = startY; y <= endY; y++) {
-            for (int offset = -(corridorWidth / 2); offset <= (corridorWidth / 2); offset++) {
+            for (int offset = -(CORRIDOR_WIDTH / 2); offset <= (CORRIDOR_WIDTH / 2); offset++) {
                 int x = x2 + offset;
                 if (y >= 0 && y < layout.length && x >= 0 && x < layout[0].length) {
                     layout[y][x] = LevelElement.FLOOR;
@@ -399,8 +406,8 @@ public class DSLLevelLoader {
         }
 
         // Default rectangular room generation
-        int width = room.width > 0 ? room.width : 10;
-        int height = room.height > 0 ? room.height : 10;
+        int width = room.width > 0 ? room.width : DEFAULT_ROOM_SIZE;
+        int height = room.height > 0 ? room.height : DEFAULT_ROOM_SIZE;
 
         // Create room interior (floor)
         for (int y = startY; y < startY + height && y < layout.length; y++) {
@@ -482,17 +489,18 @@ public class DSLLevelLoader {
      * Creates a default fallback layout if no rooms are defined.
      */
     private static LevelElement[][] createDefaultLayout() {
-        LevelElement[][] layout = new LevelElement[15][15];
-        for (int y = 0; y < 15; y++) {
-            for (int x = 0; x < 15; x++) {
-                if (x == 0 || x == 14 || y == 0 || y == 14) {
+        LevelElement[][] layout = new LevelElement[DEFAULT_LAYOUT_SIZE][DEFAULT_LAYOUT_SIZE];
+        for (int y = 0; y < DEFAULT_LAYOUT_SIZE; y++) {
+            for (int x = 0; x < DEFAULT_LAYOUT_SIZE; x++) {
+                if (x == 0 || x == DEFAULT_LAYOUT_SIZE - 1 || y == 0 || y == DEFAULT_LAYOUT_SIZE - 1) {
                     layout[y][x] = LevelElement.WALL;
                 } else {
                     layout[y][x] = LevelElement.FLOOR;
                 }
             }
         }
-        System.out.println("⚠ Using default 15x15 layout (no rooms defined)");
+        System.out.println(
+                "⚠ Using default " + DEFAULT_LAYOUT_SIZE + "x" + DEFAULT_LAYOUT_SIZE + " layout (no rooms defined)");
         return layout;
     }
 }

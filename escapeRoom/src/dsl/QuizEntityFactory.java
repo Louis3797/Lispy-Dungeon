@@ -12,7 +12,6 @@ import core.utils.components.path.SimpleIPath;
 import task.tasktype.Quiz;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -25,7 +24,9 @@ import java.util.function.BiConsumer;
  */
 public class QuizEntityFactory {
 
+    // Configuration constants
     private static final String DEFAULT_NPC_TEXTURE = "character/monster/pumpkin_dude";
+    private static final int INVINCIBLE_NPC_HEALTH = 9999;
 
     /**
      * Create a chest that shows a quiz when opened.
@@ -95,7 +96,7 @@ public class QuizEntityFactory {
         npc.add(new CollideComponent());
 
         // Make invincible
-        npc.add(new HealthComponent(9999, (entity) -> {
+        npc.add(new HealthComponent(INVINCIBLE_NPC_HEALTH, (entity) -> {
         }));
 
         // Add quiz component

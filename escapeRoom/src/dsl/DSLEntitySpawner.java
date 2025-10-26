@@ -3,7 +3,6 @@ package dsl;
 import contrib.entities.WorldItemBuilder;
 import contrib.entities.MonsterBuilder;
 import contrib.entities.AIFactory;
-import contrib.item.concreteItem.ItemResourceBerry;
 import contrib.components.InteractionComponent;
 import core.Entity;
 import core.Game;
@@ -26,6 +25,13 @@ import java.util.function.BiConsumer;
  * game.
  */
 public class DSLEntitySpawner {
+
+    // Configuration constants
+    private static final int DEFAULT_NPC_HEALTH = 10;
+    private static final int DEFAULT_NPC_DAMAGE = 1;
+    private static final String DEFAULT_HOSTILE_NPC_TEXTURE = "character/monster/chort";
+    private static final String DEFAULT_FRIENDLY_NPC_TEXTURE = "character/monster/pumpkin_dude";
+    private static final String DEFAULT_ITEM_TYPE = "tool";
 
     private static final Random random = new Random();
 
@@ -101,19 +107,11 @@ public class DSLEntitySpawner {
             return null;
         }
 
-        // Create the appropriate item based on ID or type
-        contrib.item.Item item;
-
-        if (itemId.toLowerCase().contains("key")) {
-            // Create an EscapeRoomKey for key items
-            item = new EscapeRoomKey(
-                    itemId,
-                    itemId.replace("_", " ").toUpperCase(),
-                    itemDef.description != null ? itemDef.description : "A key that unlocks something.",
-                    itemDef.texture != null ? itemDef.texture : "items/key/small_key.png");
-        } else {
-            // Use berry as placeholder for other items
-            item = new ItemResourceBerry();
+        // Create the appropriate item based on the DSL type field
+        contrib.item.Item item = createItemFromDefinition(itemId, itemDef);
+        if (item == null) {
+            System.err.println("    [FAIL] Could not create item: " + itemId);
+            return null;
         }
 
         return WorldItemBuilder.buildWorldItem(item, position);
@@ -164,11 +162,11 @@ public class DSLEntitySpawner {
             System.out.println("    [OK] Creating hostile mob: " + npcId);
 
             // Get texture path
-            String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/chort";
+            String texturePath = npcDef.texture != null ? npcDef.texture : DEFAULT_HOSTILE_NPC_TEXTURE;
 
             // Configure health and damage
-            int health = npcDef.health > 0 ? npcDef.health : 10;
-            int damage = npcDef.damage > 0 ? npcDef.damage : 1;
+            int health = npcDef.health > 0 ? npcDef.health : DEFAULT_NPC_HEALTH;
+            int damage = npcDef.damage > 0 ? npcDef.damage : DEFAULT_NPC_DAMAGE;
 
             // Use MonsterBuilder to create the entity with proper configuration
             // Use SelfDefendTransition - mobs will attack when they take damage or player
@@ -187,7 +185,7 @@ public class DSLEntitySpawner {
         } else {
             // Create friendly NPC (non-hostile)
             // Use a simple entity with proper animations but no AI or combat capabilities
-            String texturePath = npcDef.texture != null ? npcDef.texture : "character/monster/pumpkin_dude";
+            String texturePath = npcDef.texture != null ? npcDef.texture : DEFAULT_FRIENDLY_NPC_TEXTURE;
 
             try {
                 // Load animation spritesheet properly (like MonsterBuilder does)
@@ -451,31 +449,72 @@ public class DSLEntitySpawner {
 
     /**
      * Creates an item instance from DSL item definition (without spawning entity).
+     * Uses the DSL 'type' field to determine the correct item class.
      * 
      * @param itemId  The ID of the item
      * @param itemDef The item definition
      * @return The created item, or null if creation failed
      */
     private static contrib.item.Item createItemFromDefinition(String itemId, Item itemDef) {
-        // Create the appropriate item based on ID or type - same logic as
-        // createItemEntity
-        if (itemId.toLowerCase().contains("key")) {
-            // Create an EscapeRoomKey for key items
-            return new EscapeRoomKey(
-                    itemId,
-                    itemId.replace("_", " ").toUpperCase(),
-                    itemDef.description != null ? itemDef.description : "A key that unlocks something.",
-                    itemDef.texture != null ? itemDef.texture : "items/key/small_key.png");
-        } else if (itemId.toLowerCase().contains("scroll")) {
-            // Create an EscapeRoomKey for scroll items (they work like keys)
-            return new EscapeRoomKey(
-                    itemId,
-                    itemId.replace("_", " ").toUpperCase(),
-                    itemDef.description != null ? itemDef.description : "An ancient scroll.",
-                    itemDef.texture != null ? itemDef.texture : "items/book/book");
-        } else {
-            // Use berry as placeholder for other items
-            return new ItemResourceBerry();
+        if (itemDef == null) {
+            System.err.println("    [FAIL] Item definition is null for: " + itemId);
+            return null;
+        }
+
+        // Get item type from DSL (default to DEFAULT_ITEM_TYPE if not specified)
+        String type = itemDef.type != null ? itemDef.type.toLowerCase() : DEFAULT_ITEM_TYPE;
+
+        // Get display name and description
+        String displayName = itemId.replace("_", " ").toUpperCase();
+        String description = itemDef.description != null ? itemDef.description : "An item.";
+        String texturePath = itemDef.texture != null ? itemDef.texture : "items/resource/berry";
+
+        try {
+            // Create animation for the item
+            Animation animation = new Animation(new SimpleIPath(texturePath));
+
+            // Create item based on DSL type field
+            return switch (type) {
+                case "key" -> new EscapeRoomKey(
+                        itemId,
+                        displayName,
+                        description,
+                        texturePath);
+
+                case "readable" -> new contrib.item.concreteItem.ItemDefault(
+                        displayName,
+                        description + (itemDef.readable && itemDef.content != null
+                                ? "\n\n" + itemDef.content
+                                : ""),
+                        animation,
+                        animation);
+
+                case "consumable" -> new contrib.item.concreteItem.ItemDefault(
+                        displayName,
+                        description,
+                        animation,
+                        animation);
+
+                case "tool" -> new contrib.item.concreteItem.ItemDefault(
+                        displayName,
+                        description,
+                        animation,
+                        animation);
+
+                default -> {
+                    System.err.println("    [WARN] Unknown item type '" + type + "' for item '"
+                            + itemId + "', defaulting to tool");
+                    yield new contrib.item.concreteItem.ItemDefault(
+                            displayName,
+                            description,
+                            animation,
+                            animation);
+                }
+            };
+        } catch (Exception e) {
+            System.err.println("    [FAIL] Error creating item '" + itemId + "': " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 }

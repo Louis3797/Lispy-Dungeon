@@ -35,32 +35,39 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
     public void enterMetadata(EscapeRoomDSLParser.MetadataContext ctx) {
         definition.metadata = new Metadata();
 
-        // Extract metadata fields
+        // Get the full text to properly identify which field each string belongs to
+        String fullText = ctx.getText();
+
+        // Extract metadata fields by checking which field each string corresponds to
         if (ctx.STRING() != null && !ctx.STRING().isEmpty()) {
-            int idx = 0;
             for (TerminalNode strNode : ctx.STRING()) {
                 String text = strNode.getText();
                 // Remove quotes
                 text = text.substring(1, text.length() - 1);
 
-                if (idx == 0 && ctx.getText().contains("title:")) {
+                // Find which field this string belongs to by checking the text before it
+                int stringPos = ctx.getText().indexOf(strNode.getText());
+                String textBefore = stringPos > 0 ? fullText.substring(0, stringPos) : "";
+
+                if (textBefore.contains("title:") && definition.metadata.title == null) {
                     definition.metadata.title = text;
-                } else if (idx == 1 && ctx.getText().contains("description:")) {
+                } else if (textBefore.contains("description:") && definition.metadata.description == null) {
                     definition.metadata.description = text;
-                } else if (idx == 2 && ctx.getText().contains("difficulty:")) {
+                } else if (textBefore.contains("difficulty:") && definition.metadata.difficulty == null) {
                     definition.metadata.difficulty = text;
                 }
-                idx++;
             }
         }
 
-        if (ctx.INT() != null) {
+        // Extract max_time
+        if (ctx.INT() != null && fullText.contains("max_time:")) {
             definition.metadata.maxTime = Integer.parseInt(ctx.INT().getText());
         }
 
         System.out.println("DEBUG: Found title: " + definition.metadata.title);
         System.out.println("DEBUG: Found description: " + definition.metadata.description);
         System.out.println("DEBUG: Found difficulty: " + definition.metadata.difficulty);
+        System.out.println("DEBUG: Found max_time: " + definition.metadata.maxTime);
     }
 
     @Override

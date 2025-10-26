@@ -13,13 +13,15 @@ import core.utils.Point;
 import core.utils.components.draw.animation.Animation;
 import core.utils.components.path.SimpleIPath;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Factory for creating door entities with visual indicators.
  */
 public class DoorEntityFactory {
+
+    // Configuration constants
+    private static final float DOOR_INTERACTION_RADIUS = 2.0f;
 
     /**
      * Create visual indicator entity for a locked door.
@@ -43,7 +45,7 @@ public class DoorEntityFactory {
 
         // Interaction to check inventory and unlock
         doorEntity.add(new InteractionComponent(
-                2.0f,
+                DOOR_INTERACTION_RADIUS,
                 true,
                 (entity, hero) -> {
                     if (door.isOpen()) {
@@ -111,7 +113,7 @@ public class DoorEntityFactory {
         // No CollideComponent - player can walk through open doors
 
         doorEntity.add(new InteractionComponent(
-                2.0f,
+                DOOR_INTERACTION_RADIUS,
                 true,
                 (entity, hero) -> {
                     DialogUtils.showTextPopup(
