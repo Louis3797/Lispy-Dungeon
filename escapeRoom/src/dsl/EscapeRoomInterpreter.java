@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
-    private static final Logger LOGGER = Logger.getLogger(DoorManager.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EscapeRoomInterpreter.class.getSimpleName());
 
     private EscapeRoomDefinition definition;
     private String currentId;
