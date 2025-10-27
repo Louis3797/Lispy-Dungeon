@@ -235,7 +235,7 @@ escape_room:
         emerald_key:
             description: "An emerald key that opens the poison chamber"
             type: "key"
-            texture: "items/key/big_key.png"
+            texture: "items/key/red_key.png"
             visible: true
 
         ruby_key:
@@ -247,7 +247,7 @@ escape_room:
         master_key:
             description: "The master key that opens the secret vault"
             type: "key"
-            texture: "items/key/big_key.png"
+            texture: "items/key/blue_key.png"
             visible: true
 
         wisdom_scroll:
@@ -267,37 +267,31 @@ escape_room:
         health_potion:
             description: "A red potion that restores health"
             type: "consumable"
-            texture: "items/flask/big_red.png"
+            texture: "items/potion/health_potion.png"
             visible: true
 
         mana_potion:
             description: "A blue potion that restores mana"
             type: "consumable"
-            texture: "items/flask/big_blue.png"
+            texture: "items/potion/mana_potion.png"
             visible: true
 
-        speed_potion:
-            description: "A green potion that increases speed"
-            type: "consumable"
-            texture: "items/flask/big_green.png"
-            visible: true
-
-        rusty_sword:
-            description: "An old rusty sword"
+        legendary_sword:
+            description: "A legendary sword with immense power"
             type: "weapon"
-            texture: "items/weapon/sword.png"
+            texture: "items/weapon/legendary_sword.png"
             visible: true
 
-        magic_wand:
-            description: "A powerful magic wand"
+        wooden_bow:
+            description: "A powerful wooden bow"
             type: "weapon"
-            texture: "items/weapon/wand.png"
+            texture: "items/weapon/wooden_bow.png"
             visible: true
 
         ancient_map:
             description: "A map of the fortress"
             type: "readable"
-            texture: "items/book/book.png"
+            texture: "items/book/red_book.png"
             readable: true
             content: "The fortress layout shows 13 chambers connected by ancient passages..."
 
@@ -320,7 +314,7 @@ escape_room:
 
         librarian:
             description: "The ancient librarian"
-            texture: "character/monster/wizard"
+            texture: "character/monster/necromancer"
             location: library
             hostile: false
             dialogue:
