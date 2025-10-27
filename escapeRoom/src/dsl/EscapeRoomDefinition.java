@@ -21,6 +21,27 @@ public class EscapeRoomDefinition {
         return metadata != null && metadata.title != null ? metadata.title : "Escape Room";
     }
 
+    /**
+     * Check if fog of war is enabled.
+     */
+    public boolean isFogOfWarEnabled() {
+        return metadata != null && metadata.fogOfWar;
+    }
+
+    /**
+     * Get the fog of war view distance.
+     */
+    public int getFogViewDistance() {
+        return metadata != null ? metadata.viewDistance : 7;
+    }
+
+    /**
+     * Get the camera zoom level.
+     */
+    public float getCameraZoom() {
+        return metadata != null ? metadata.cameraZoom : 1.0f;
+    }
+
     @Override
     public String toString() {
         return "EscapeRoomDefinition{" +
@@ -41,6 +62,9 @@ class Metadata {
     public String description;
     public String difficulty;
     public int maxTime;
+    public boolean fogOfWar;
+    public int viewDistance = 7; // default view distance
+    public float cameraZoom = 1.0f; // default zoom level
 
     @Override
     public String toString() {
@@ -49,6 +73,9 @@ class Metadata {
                 ", description='" + description + '\'' +
                 ", difficulty='" + difficulty + '\'' +
                 ", maxTime=" + maxTime +
+                ", fogOfWar=" + fogOfWar +
+                ", viewDistance=" + viewDistance +
+                ", cameraZoom=" + cameraZoom +
                 '}';
     }
 }
@@ -63,7 +90,6 @@ class Room {
     public List<String> items;
     public List<String> connections;
     public String lockedBy;
-    public String atmosphere;
 
     @Override
     public String toString() {

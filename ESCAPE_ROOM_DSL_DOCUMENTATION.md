@@ -1,7 +1,36 @@
 # Escape Room DSL Documentation
 
-**Version:** 1.0  
-**Last Updated:** October 25, 2025
+**Version:** 1.1  
+**Last Updated:** October 26, 2025
+
+## Changelog
+
+### Version 1.1 (October 26, 2025)
+
+**New Features:**
+
+-   🌫️ **Fog of War System** - Limited vision gameplay with configurable view distance
+    -   Global fog settings in metadata: `fog_of_war`, `view_distance`
+    -   Room-specific overrides: `fog_enabled`, `fog_view_distance`
+-   📷 **Camera & Zoom Controls** - Customizable camera settings
+    -   Global zoom level in metadata: `camera_zoom`
+    -   Room-specific settings: `camera_zoom`, `camera_focus`
+-   ⚡ **Custom Player Stats** - Override character class defaults
+    -   Configure: `health`, `mana`, `stamina`, `speed`, `mana_restore`, `stamina_restore`
+    -   All stats optional - use class defaults if not specified
+
+### Version 1.0 (October 25, 2025)
+
+**Initial Release:**
+
+-   Multi-room level design with custom shapes
+-   Combat system with hostile mobs
+-   Quiz & reward system
+-   Player character classes (Wizard & Hunter)
+-   Item & inventory management
+-   NPC system
+
+---
 
 ## Table of Contents
 
@@ -42,9 +71,17 @@ The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like la
 #### 👤 **Player System**
 
 -   ✅ **Character classes** - Wizard (15 HP, 100 mana, fireball/heal) or Hunter (35 HP, 120 stamina, bow/dash)
+-   ✅ **Custom player stats** - Override default health, mana, stamina, speed, and restoration rates
 -   ✅ **Skill casting** - Q key or mouse click to use active skills
 -   ✅ **Custom spawn points** - Optional starting positions or random placement
 -   ✅ **Controls** - WASD/arrows for movement, E for interaction, Q for skills
+
+#### 🎮 **Advanced Gameplay**
+
+-   ✅ **Fog of War** - Limited vision system with configurable view distance
+-   ✅ **Room-specific fog** - Enable/disable fog per room with custom view distances
+-   ✅ **Camera zoom** - Customize zoom level globally or per room
+-   ✅ **Camera focus** - Control camera targeting (hero or specific entities)
 
 #### 🎒 **Items & Inventory**
 
@@ -203,6 +240,9 @@ metadata:
     description: "String"     # Brief description (required)
     difficulty: "easy"        # Difficulty: "easy", "medium", "hard" (required)
     max_time: 30              # Time limit in minutes (required)
+    fog_of_war: false         # Enable fog of war (optional, default: false)
+    view_distance: 7          # Tiles visible around player with fog (optional, default: 7)
+    camera_zoom: 1.0          # Camera zoom level (optional, default: 1.0, range: 0.5-2.0)
 ```
 
 **Example:**
@@ -213,6 +253,9 @@ metadata:
     description: "Uncover the secrets hidden within"
     difficulty: "medium"
     max_time: 30
+    fog_of_war: true
+    view_distance: 5
+    camera_zoom: 0.8
 ```
 
 ---
@@ -251,6 +294,12 @@ rooms:
         npcs: [npc1]                  # NPCs spawned in room (optional)
         connections: [other_room]     # Connected rooms (optional)
         locked_by: key_id             # Key required to enter (optional)
+
+        # Advanced visual settings (optional - override global metadata settings)
+        fog_enabled: true             # Enable fog in this room (optional, overrides metadata)
+        fog_view_distance: 5          # Custom view distance for this room (optional)
+        camera_zoom: 1.2              # Custom camera zoom for this room (optional)
+        camera_focus: hero            # Camera focus: "hero" or entity name (optional)
 ```
 
 **ASCII Pattern Symbols:**
@@ -543,6 +592,14 @@ player:
     class: wizard              # Character class: "wizard" or "hunter" (optional, default: wizard)
     start_x: 5                # Starting X position (optional, uses random floor position if not set)
     start_y: 5                # Starting Y position (optional, uses random floor position if not set)
+
+    # Custom stats (optional - override class defaults)
+    health: 50                # Maximum health points (optional)
+    mana: 150                 # Maximum mana points (optional)
+    stamina: 80               # Maximum stamina points (optional)
+    speed: 6.0                # Movement speed (optional)
+    mana_restore: 3.0         # Mana restoration per second (optional)
+    stamina_restore: 2.5      # Stamina restoration per second (optional)
 ```
 
 **Character Classes:**
@@ -561,7 +618,7 @@ player:
 **Example:**
 
 ```dsl
-# Option 1: Specify only class (position will be random)
+# Option 1: Specify only class (position will be random, use class defaults)
 player:
     class: hunter
 
@@ -571,7 +628,17 @@ player:
     start_x: 5
     start_y: 5
 
-# Option 3: Omit player section entirely (defaults to wizard, random position)
+# Option 3: Custom stats (override defaults)
+player:
+    class: wizard
+    start_x: 5
+    start_y: 5
+    health: 50
+    mana: 150
+    speed: 6.0
+    mana_restore: 3.0
+
+# Option 4: Omit player section entirely (defaults to wizard, random position)
 # No player section needed - uses defaults
 ```
 
@@ -581,6 +648,9 @@ player:
 -   Starting position (`start_x`, `start_y`) is optional - will use random floor tile if not specified
 -   Character class determines combat style, starting skills, and stats
 -   Both classes have full combat capabilities to fight hostile mobs
+-   Custom stats override class defaults - useful for difficulty balancing
+-   If a custom stat is not specified, the class default value is used
+-   Custom stats allow creating glass cannon builds (high offense, low defense) or tank builds (high defense)
 
 ---
 
@@ -689,6 +759,78 @@ escape_room:
 
 ---
 
+### Advanced Features Example: Fog of War & Custom Settings
+
+This example demonstrates the new advanced features added in version 1.1:
+
+```dsl
+escape_room:
+
+    metadata:
+        title: "The Shadow Dungeon"
+        description: "Navigate through darkness with limited vision"
+        difficulty: "hard"
+        max_time: 45
+        fog_of_war: true          # Enable fog of war globally
+        view_distance: 5          # Player can see 5 tiles around them
+        camera_zoom: 0.8          # Zoomed out for wider view
+
+    player:
+        class: wizard
+        start_x: 5
+        start_y: 5
+        # Custom stats - balanced for fog gameplay
+        health: 50                # More health than default
+        mana: 150                 # Extra mana for abilities
+        stamina: 80
+        speed: 6.0                # Faster movement
+        mana_restore: 3.0         # Faster mana regeneration
+        stamina_restore: 2.5
+
+    rooms:
+        dark_entrance:
+            description: "A pitch-black entrance hall"
+            x: 0
+            y: 0
+            width: 10
+            height: 10
+            items: [torch]
+            connections: [bright_room]
+
+        bright_room:
+            description: "A magically lit chamber"
+            x: 15
+            y: 0
+            width: 12
+            height: 12
+            items: [golden_key]
+            connections: [dark_entrance, treasure_vault]
+
+        treasure_vault:
+            description: "The final vault"
+            x: 15
+            y: 15
+            width: 8
+            height: 8
+            connections: [bright_room]
+            locked_by: golden_key
+
+    items:
+        torch:
+            description: "A bright torch"
+            type: "tool"
+            texture: "items/torch"
+            visible: true
+
+        golden_key:
+            description: "A shimmering golden key"
+            type: "key"
+            texture: "items/key/big_key.png"
+            visible: true
+```
+
+---
+
 ## Best Practices
 
 ### Room Design
@@ -698,6 +840,23 @@ escape_room:
 3. **Spacing**: Leave gaps between rooms for corridors (minimum 2-3 tiles)
 4. **Size**: Typical room dimensions: 8x8 to 15x15 tiles
 5. **Key Placement**: Always put required keys in accessible rooms (not behind locked doors)
+
+### Camera Settings
+
+1. **Default Zoom**: Keep `camera_zoom: 1.0` for normal gameplay
+2. **Zoom Out** (`0.7-0.9`): For large rooms or tactical overview
+3. **Zoom In** (`1.1-1.5`): For small rooms or to create claustrophobia
+4. **Room Transitions**: Use different zoom levels to emphasize room changes
+5. **Camera Focus**: Use `camera_focus: hero` to keep player centered
+
+### Custom Player Stats
+
+1. **Class Identity**: Keep some class characteristics (wizards = mana, hunters = stamina)
+2. **Difficulty Tuning**: Adjust health for easier/harder gameplay
+3. **Speed Balance**: Higher speed (5.0-7.0) makes combat easier
+4. **Resource Rates**: Higher restore rates (2.0-4.0) = more ability spam
+5. **Glass Cannon**: High damage stats, low health for challenge
+6. **Tank Build**: High health/stamina, lower speed for survival
 
 ### Item Placement
 
@@ -753,9 +912,90 @@ escape_room:
 -   Check that `attached_to` references an existing entity
 -   Ensure `correct_answers` indices match answer array
 
+**Problem:** Fog of war not working (v1.1)  
+**Solution:**
+
+-   Check `fog_of_war: true` is set in metadata section
+-   Verify `view_distance` is a positive integer (recommended: 3-10)
+-   Ensure FogSystem is properly initialized in game setup
+-   Try setting `fog_enabled: true` explicitly in room definitions
+
+**Problem:** Camera zoom not applying (v1.1)  
+**Solution:**
+
+-   Ensure `camera_zoom` is a float value between 0.5 and 2.0
+-   Check that value is actually different from default 1.0
+-   Verify Debugger.ZOOM_CAMERA() is being called in game setup
+-   Note: Camera zoom applies on game start, not dynamically per room yet
+
+**Problem:** Custom player stats not working (v1.1)  
+**Solution:**
+
+-   Verify stat names are spelled correctly (health, mana, stamina, speed, mana_restore, stamina_restore)
+-   Ensure values are appropriate types (integers for health/mana/stamina, floats for speed/restore rates)
+-   Check that `applyCustomPlayerStats()` is being called after hero creation
+-   Use positive values - negative stats will cause issues
+
 ---
 
 ## Advanced Features
+
+### Fog of War Strategies (v1.1)
+
+Create atmospheric gameplay with strategic fog usage:
+
+```dsl
+metadata:
+    fog_of_war: true
+    view_distance: 5
+
+rooms:
+    dark_maze:
+        description: "Navigate through darkness"
+        fog_enabled: true
+        fog_view_distance: 3    # Very limited vision
+
+    safe_room:
+        description: "A brightly lit sanctuary"
+        fog_enabled: false       # Full visibility
+        camera_zoom: 1.2
+
+    boss_arena:
+        description: "Final confrontation"
+        fog_enabled: true
+        fog_view_distance: 7     # Better vision for combat
+        camera_zoom: 0.8         # Zoom out for tactical view
+```
+
+### Character Build Presets (v1.1)
+
+Create specialized character builds:
+
+```dsl
+# Glass Cannon Build - High damage, low survivability
+player:
+    class: wizard
+    health: 20              # Lower than default
+    mana: 200               # Much higher mana pool
+    speed: 7.0              # Fast movement
+    mana_restore: 5.0       # Rapid ability spam
+
+# Tank Build - High survivability
+player:
+    class: hunter
+    health: 100             # Very high health
+    stamina: 150
+    speed: 4.0              # Slower movement
+    stamina_restore: 1.5    # Slower regeneration
+
+# Speed Runner Build - Fast exploration
+player:
+    class: hunter
+    health: 50
+    stamina: 200
+    speed: 8.0              # Very fast
+    stamina_restore: 4.0    # Quick stamina recovery
+```
 
 ### Multi-Key Systems
 
@@ -809,15 +1049,20 @@ rooms:
         width: 8
         height: 8
         items: [hint_scroll]
+        fog_enabled: false       # No fog for tutorial
 
     easy_puzzle_room:
         locked_by: tutorial_key
+        fog_view_distance: 7     # Good visibility
 
     medium_puzzle_room:
         locked_by: easy_key
+        fog_view_distance: 5     # Moderate visibility
 
     hard_boss_room:
         locked_by: medium_key
+        fog_view_distance: 4     # Limited visibility
+        camera_zoom: 0.7         # Wide view for combat
 ```
 
 ---
@@ -898,6 +1143,53 @@ escape_room:
     items:         # Optional
     quizzes:       # Optional
     npcs:          # Optional
+    player:        # Optional (defaults to wizard if omitted)
+```
+
+### Metadata with Advanced Features (v1.1)
+
+```dsl
+metadata:
+    title: "String"
+    description: "String"
+    difficulty: "easy"
+    max_time: 30
+    # Advanced features (optional)
+    fog_of_war: true         # Enable fog of war
+    view_distance: 5         # Tiles visible around player
+    camera_zoom: 0.8         # Camera zoom level (0.5-2.0)
+```
+
+### Room with Advanced Features (v1.1)
+
+```dsl
+room_id:
+    description: "Text"
+    x: 0
+    y: 0
+    width: 10
+    height: 10
+    # Advanced features (optional)
+    fog_enabled: false       # Override global fog setting
+    fog_view_distance: 7     # Custom view distance for this room
+    camera_zoom: 1.2         # Custom zoom for this room
+    camera_focus: hero       # Camera focus (hero or entity name)
+```
+
+### Player with Custom Stats (v1.1)
+
+```dsl
+player:
+    class: wizard            # wizard or hunter
+    start_x: 5              # Optional spawn position
+    start_y: 5
+    # Custom stats (optional - override class defaults)
+    health: 50
+    mana: 150
+    stamina: 80
+    speed: 6.0
+    mana_restore: 3.0
+    stamina_restore: 2.5
 ```
 
 ### Minimum Room Definition
@@ -999,6 +1291,8 @@ quiz_id:
 -   `StaminaRestoreSystem` - Regenerates stamina over time
 -   `CollisionSystem` - Handles entity collisions
 -   `PathSystem` - Manages pathfinding for AI
+-   `FogSystem` - (v1.1) Manages fog of war rendering and view distance
+-   `Debugger.ZOOM_CAMERA()` - (v1.1) Controls camera zoom level
 
 **AI Components:**
 
@@ -1017,11 +1311,26 @@ quiz_id:
 -   Both have `SkillComponent` for Q key/mouse casting
 -   Both have `InputComponent` for keyboard/mouse controls
 
+**Custom Stats (v1.1):**
+
+-   DSL can override default stats via `applyCustomPlayerStats()`
+-   Health: Updates `HealthComponent.maximalHealthpoints()`
+-   Mana: Updates `ManaComponent.maxAmount()` and `currentAmount()`
+-   Stamina: Updates `StaminaComponent.maxAmount()` and `currentAmount()`
+-   Speed: Stored in `VelocityComponent` (note: VelocityComponent doesn't have direct speed setter)
+-   Restore rates: Updates `ManaComponent.restorePerSecond()` and `StaminaComponent.restorePerSecond()`
+
 **Resource Management:**
 
--   Mana regenerates automatically at 10 per tick
--   Stamina regenerates automatically over time
+-   Mana regenerates automatically based on restore rate (default: 10 per tick)
+-   Stamina regenerates automatically based on restore rate
 -   Skills can't be cast without sufficient resources
+
+**Advanced Features (v1.1):**
+
+-   **Fog of War**: Enabled via `definition.isFogOfWarEnabled()`, uses `FogSystem.currentViewDistance()`
+-   **Camera Zoom**: Applied via `Debugger.ZOOM_CAMERA(zoom - 1.0f)` on game setup
+-   Room-specific settings applied when entering rooms (future enhancement)
 
 ### Quiz & Reward System
 

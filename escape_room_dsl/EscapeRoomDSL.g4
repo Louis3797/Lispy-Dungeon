@@ -14,6 +14,9 @@ metadata
       ('description:' STRING)?
       ('difficulty:' STRING)?
       ('max_time:' INT)?
+      ('fog_of_war:' BOOLEAN)?
+      ('view_distance:' INT)?
+      ('camera_zoom:' FLOAT)?
     ;
 
 rooms
@@ -32,7 +35,6 @@ room
       ('npcs:' array)?
       ('connections:' array)?
       ('locked_by:' ID)?
-      ('atmosphere:' STRING)?
     ;
 
 items
@@ -101,6 +103,12 @@ player
       ('class:' PLAYER_CLASS)?
       ('start_x:' INT)?
       ('start_y:' INT)?
+      ('health:' INT)?
+      ('mana:' INT)?
+      ('stamina:' INT)?
+      ('speed:' FLOAT)?
+      ('mana_restore:' FLOAT)?
+      ('stamina_restore:' FLOAT)?
     ;
 
 quizzes
@@ -190,6 +198,7 @@ array
 
 value
     : STRING
+    | FLOAT
     | INT
     | BOOLEAN
     | ITEM_TYPE
@@ -246,8 +255,12 @@ MULTILINE_STRING
     : '"""' .*? '"""'
     ;
 
+FLOAT
+    : '-'? [0-9]+ '.' [0-9]+
+    ;
+
 INT
-    : [0-9]+
+    : '-'? [0-9]+
     ;
 
 WS

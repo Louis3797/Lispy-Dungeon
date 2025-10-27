@@ -66,13 +66,50 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
         // Extract max_time
         if (ctx.INT() != null && fullText.contains("max_time:")) {
-            definition.metadata.maxTime = Integer.parseInt(ctx.INT().getText());
+            definition.metadata.maxTime = Integer.parseInt(ctx.INT().get(0).getText());
+        }
+
+        // Extract fog_of_war (parse from text)
+        if (fullText.contains("fog_of_war:")) {
+            String[] parts = fullText.split("fog_of_war:");
+            if (parts.length > 1) {
+                String value = parts[1].trim().split("\\s")[0];
+                definition.metadata.fogOfWar = value.equals("true");
+            }
+        }
+
+        // Extract view_distance (parse from text)
+        if (fullText.contains("view_distance:")) {
+            String[] parts = fullText.split("view_distance:");
+            if (parts.length > 1) {
+                try {
+                    String value = parts[1].trim().split("\\s")[0];
+                    definition.metadata.viewDistance = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
+        }
+
+        // Extract camera_zoom (parse from text)
+        if (fullText.contains("camera_zoom:")) {
+            String[] parts = fullText.split("camera_zoom:");
+            if (parts.length > 1) {
+                try {
+                    String value = parts[1].trim().split("\\s")[0];
+                    definition.metadata.cameraZoom = Float.parseFloat(value);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
+            }
         }
 
         LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found title: " + definition.metadata.title);
         LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found description: " + definition.metadata.description);
         LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found difficulty: " + definition.metadata.difficulty);
         LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found max_time: " + definition.metadata.maxTime);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found fog_of_war: " + definition.metadata.fogOfWar);
+        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found view_distance: " + definition.metadata.viewDistance);
     }
 
     @Override
@@ -80,6 +117,14 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
         LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering rooms section");
         if (definition.rooms == null) {
             definition.rooms = new HashMap<>();
+        }
+    }
+
+    @Override
+    public void exitRooms(EscapeRoomDSLParser.RoomsContext ctx) {
+        LOGGER.info("Total rooms parsed: " + (definition.rooms != null ? definition.rooms.size() : 0));
+        if (definition.rooms != null) {
+            LOGGER.info("Room IDs: " + definition.rooms.keySet());
         }
     }
 
@@ -92,9 +137,9 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
             LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found room: " + currentId);
 
             // Parse room properties
-            if (ctx.STRING() != null && !ctx.STRING().isEmpty()) {
-                // First STRING is description
-                String desc = ctx.STRING(0).getText();
+            if (ctx.STRING() != null) {
+                // STRING is description
+                String desc = ctx.STRING().getText();
                 currentRoom.description = desc.substring(1, desc.length() - 1);
             }
 
@@ -154,13 +199,17 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
     @Override
     public void exitRoom(EscapeRoomDSLParser.RoomContext ctx) {
+        if (currentRoom != null && currentId != null) {
+            LOGGER.info("Room '" + currentId + "' parsed: connections=" + currentRoom.connections +
+                    ", lockedBy=" + currentRoom.lockedBy + ", size=" + currentRoom.width + "x" + currentRoom.height);
+        }
         currentRoom = null;
         currentId = null;
     }
 
     @Override
     public void enterItems(EscapeRoomDSLParser.ItemsContext ctx) {
-        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Entering items section");
+        LOGGER.log(CustomLogLevel.DEBUG, "Entering items section");
         if (definition.items == null) {
             definition.items = new HashMap<>();
         }
@@ -259,19 +308,65 @@ public class EscapeRoomInterpreter extends EscapeRoomDSLBaseListener {
 
         // Parse class
         if (ctx.PLAYER_CLASS() != null) {
-            definition.player.characterClass = ctx.PLAYER_CLASS().getText();
-            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Player class: " + definition.player.characterClass);
+            definition.player.playerClass = ctx.PLAYER_CLASS().getText();
+            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Player class: " + definition.player.playerClass);
         }
 
-        // Parse start_x
-        if (text.contains("start_x:") && ctx.INT() != null && !ctx.INT().isEmpty()) {
-            definition.player.startX = Integer.parseInt(ctx.INT(0).getText());
+        // Parse numeric values from text
+        if (text.contains("start_x:")) {
+            definition.player.startX = parseIntFromText(text, "start_x:");
         }
+        if (text.contains("start_y:")) {
+            definition.player.startY = parseIntFromText(text, "start_y:");
+        }
+        if (text.contains("health:")) {
+            definition.player.health = parseIntFromText(text, "health:");
+        }
+        if (text.contains("mana:")) {
+            definition.player.mana = parseIntFromText(text, "mana:");
+        }
+        if (text.contains("stamina:")) {
+            definition.player.stamina = parseIntFromText(text, "stamina:");
+        }
+        if (text.contains("speed:")) {
+            definition.player.speed = parseFloatFromText(text, "speed:");
+        }
+        if (text.contains("mana_restore:")) {
+            definition.player.manaRestore = parseFloatFromText(text, "mana_restore:");
+        }
+        if (text.contains("stamina_restore:")) {
+            definition.player.staminaRestore = parseFloatFromText(text, "stamina_restore:");
+        }
+    }
 
-        // Parse start_y
-        if (text.contains("start_y:") && ctx.INT() != null && ctx.INT().size() > 1) {
-            definition.player.startY = Integer.parseInt(ctx.INT(1).getText());
+    private Integer parseIntFromText(String text, String key) {
+        try {
+            String[] parts = text.split(key);
+            if (parts.length > 1) {
+                String value = parts[1].split("[^0-9]")[0];
+                if (!value.isEmpty()) {
+                    return Integer.parseInt(value);
+                }
+            }
+        } catch (Exception e) {
+            // Return null if parsing fails
         }
+        return null;
+    }
+
+    private Float parseFloatFromText(String text, String key) {
+        try {
+            String[] parts = text.split(key);
+            if (parts.length > 1) {
+                String value = parts[1].split("\\s")[0];
+                if (!value.isEmpty()) {
+                    return Float.parseFloat(value);
+                }
+            }
+        } catch (Exception e) {
+            // Return null if parsing fails
+        }
+        return null;
     }
 
     @Override

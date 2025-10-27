@@ -197,17 +197,27 @@ public class DSLLevelLoader {
         }
 
         // Calculate required grid size based on room positions
-        int maxX = 0, maxY = 0;
+        // Find the min and max coordinates to handle negative positions
+        int minX = 0, minY = 0, maxX = 0, maxY = 0;
         for (Room room : definition.rooms.values()) {
+            minX = Math.min(minX, room.x);
+            minY = Math.min(minY, room.y);
             int roomEndX = room.x + (room.width > 0 ? room.width : DEFAULT_ROOM_SIZE);
             int roomEndY = room.y + (room.height > 0 ? room.height : DEFAULT_ROOM_SIZE);
             maxX = Math.max(maxX, roomEndX);
             maxY = Math.max(maxY, roomEndY);
         }
 
+        // Calculate offset to handle negative coordinates
+        int offsetX = Math.abs(minX) + LAYOUT_PADDING;
+        int offsetY = Math.abs(minY) + LAYOUT_PADDING;
+
         // Add padding
-        maxX += LAYOUT_PADDING;
-        maxY += LAYOUT_PADDING;
+        maxX += offsetX + LAYOUT_PADDING;
+        maxY += offsetY + LAYOUT_PADDING;
+
+        LOGGER.info("Layout bounds: minX=" + minX + ", minY=" + minY + ", maxX=" + maxX + ", maxY=" + maxY);
+        LOGGER.info("Applying offset: offsetX=" + offsetX + ", offsetY=" + offsetY);
 
         // Initialize layout with walls
         LevelElement[][] layout = new LevelElement[maxY][maxX];
@@ -217,13 +227,13 @@ public class DSLLevelLoader {
             }
         }
 
-        // Place rooms
+        // Place rooms (apply offset to handle negative coordinates)
         for (Room room : definition.rooms.values()) {
-            placeRoom(layout, room);
+            placeRoom(layout, room, offsetX, offsetY);
         }
 
         // Generate corridors between connected rooms
-        generateCorridors(layout, definition);
+        generateCorridors(layout, definition, offsetX, offsetY);
 
         LOGGER.info("Generated level layout: " + maxX + "x" + maxY + " with " + definition.rooms.size() + " room(s)");
 
@@ -260,8 +270,11 @@ public class DSLLevelLoader {
      * 
      * @param layout     The level layout to modify
      * @param definition The escape room definition containing room connections
+     * @param offsetX    The X offset to handle negative coordinates
+     * @param offsetY    The Y offset to handle negative coordinates
      */
-    private static void generateCorridors(LevelElement[][] layout, EscapeRoomDefinition definition) {
+    private static void generateCorridors(LevelElement[][] layout, EscapeRoomDefinition definition, int offsetX,
+            int offsetY) {
         if (definition.rooms == null)
             return;
 
@@ -277,7 +290,7 @@ public class DSLLevelLoader {
             for (String targetRoomId : room.connections) {
                 Room targetRoom = definition.rooms.get(targetRoomId);
                 if (targetRoom != null) {
-                    createCorridor(layout, roomId, room, targetRoomId, targetRoom);
+                    createCorridor(layout, roomId, room, targetRoomId, targetRoom, offsetX, offsetY);
                     LOGGER.info("Connected '" + roomId + "' to '" + targetRoomId + "'");
                 }
             }
@@ -288,12 +301,12 @@ public class DSLLevelLoader {
      * Creates a corridor between two rooms.
      */
     private static void createCorridor(LevelElement[][] layout, String room1Id, Room room1, String room2Id,
-            Room room2) {
-        // Calculate center points of each room
-        int x1 = room1.x + room1.width / 2;
-        int y1 = room1.y + room1.height / 2;
-        int x2 = room2.x + room2.width / 2;
-        int y2 = room2.y + room2.height / 2;
+            Room room2, int offsetX, int offsetY) {
+        // Calculate center points of each room (with offset applied)
+        int x1 = room1.x + offsetX + room1.width / 2;
+        int y1 = room1.y + offsetY + room1.height / 2;
+        int x2 = room2.x + offsetX + room2.width / 2;
+        int y2 = room2.y + offsetY + room2.height / 2;
 
         // Create L-shaped corridor (horizontal then vertical) with CORRIDOR_WIDTH
         // Horizontal segment
@@ -324,19 +337,19 @@ public class DSLLevelLoader {
         // For room1: check horizontal corridor approaching from the direction of room2
         if (x2 < x1) {
             // Corridor comes from the left
-            markDoorInWall(layout, room1Id, room1, room1.x - 1, y1);
+            markDoorInWall(layout, room1Id, room1, offsetX, offsetY, room1.x + offsetX - 1, y1);
         } else {
             // Corridor comes from the right
-            markDoorInWall(layout, room1Id, room1, room1.x + room1.width, y1);
+            markDoorInWall(layout, room1Id, room1, offsetX, offsetY, room1.x + offsetX + room1.width, y1);
         }
 
         // For room2: check vertical corridor approaching from the direction of room1
         if (y1 < y2) {
             // Corridor comes from above
-            markDoorInWall(layout, room2Id, room2, x2, room2.y - 1);
+            markDoorInWall(layout, room2Id, room2, offsetX, offsetY, x2, room2.y + offsetY - 1);
         } else {
             // Corridor comes from below
-            markDoorInWall(layout, room2Id, room2, x2, room2.y + room2.height);
+            markDoorInWall(layout, room2Id, room2, offsetX, offsetY, x2, room2.y + offsetY + room2.height);
         }
     }
 
@@ -347,16 +360,19 @@ public class DSLLevelLoader {
      * @param layout    The level layout to modify
      * @param roomId    The ID of the room
      * @param room      The room definition
+     * @param offsetX   The X offset to handle negative coordinates
+     * @param offsetY   The Y offset to handle negative coordinates
      * @param corridorX The X coordinate where corridor connects
      * @param corridorY The Y coordinate where corridor connects
      */
-    private static void markDoorInWall(LevelElement[][] layout, String roomId, Room room, int corridorX,
-            int corridorY) {
-        // Find where the corridor intersects the room's wall
-        int roomLeft = room.x;
-        int roomRight = room.x + room.width - 1;
-        int roomTop = room.y;
-        int roomBottom = room.y + room.height - 1;
+    private static void markDoorInWall(LevelElement[][] layout, String roomId, Room room, int offsetX, int offsetY,
+            int corridorX, int corridorY) {
+        // Find where the corridor intersects the room's wall (apply offset to room
+        // coordinates)
+        int roomLeft = room.x + offsetX;
+        int roomRight = room.x + offsetX + room.width - 1;
+        int roomTop = room.y + offsetY;
+        int roomBottom = room.y + offsetY + room.height - 1;
 
         Point doorPos = null;
         String direction = null;
@@ -415,14 +431,16 @@ public class DSLLevelLoader {
     }
 
     /**
-     * Places a single room in the layout.
+     * Places a room in the level layout.
      * 
-     * @param layout The level layout to modify
-     * @param room   The room to place
+     * @param layout  The level layout to modify
+     * @param room    The room to place
+     * @param offsetX The X offset to handle negative coordinates
+     * @param offsetY The Y offset to handle negative coordinates
      */
-    private static void placeRoom(LevelElement[][] layout, Room room) {
-        int startX = room.x > 0 ? room.x : 1;
-        int startY = room.y > 0 ? room.y : 1;
+    private static void placeRoom(LevelElement[][] layout, Room room, int offsetX, int offsetY) {
+        int startX = room.x + offsetX;
+        int startY = room.y + offsetY;
 
         // Check if room has a custom ASCII pattern
         if (room.pattern != null && !room.pattern.trim().isEmpty()) {

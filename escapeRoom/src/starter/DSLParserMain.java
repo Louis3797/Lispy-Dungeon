@@ -6,6 +6,7 @@ import dsl.EscapeRoomInterpreter;
 import org.antlr.v4.runtime.*;
 
 import core.Game;
+import core.utils.logging.CustomLogLevel;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +23,7 @@ public class DSLParserMain {
 
     public static void main(String[] args) throws IOException {
 
-        Game.initBaseLogger(Level.INFO);
+        Game.initBaseLogger(CustomLogLevel.DEBUG);
 
         if (args.length < 1) {
             LOGGER.warning("Usage: java DSLParserMain <dsl-file>");
@@ -53,11 +54,6 @@ public class DSLParserMain {
         LOGGER.info("=== ANTLR Interpreter (may have issues) ===");
         Object definition = EscapeRoomInterpreter.interpret(tree);
         LOGGER.info(definition.toString());
-
-        // Use simple text parser as a workaround
-        LOGGER.info("=== Simple Text Parser (working) ===");
-        Object simpleDef = dsl.SimpleEscapeRoomParser.parse(input);
-        LOGGER.info(simpleDef.toString());
 
         LOGGER.info("DSL parsing and interpretation complete!");
     }

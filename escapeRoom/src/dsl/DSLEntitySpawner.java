@@ -1,6 +1,7 @@
 package dsl;
 
 import contrib.entities.WorldItemBuilder;
+import contrib.utils.components.ai.transition.RangeTransition;
 import contrib.entities.MonsterBuilder;
 import contrib.entities.AIFactory;
 import contrib.components.InteractionComponent;
@@ -213,6 +214,7 @@ public class DSLEntitySpawner {
         int damage = npcDef.damage > 0 ? npcDef.damage : DEFAULT_NPC_DAMAGE;
 
         // Use MonsterBuilder to create the entity with proper configuration
+        // Use RangeTransition for aggressive behavior - attacks when player comes close
         Entity npcEntity = new MonsterBuilder<>()
                 .name(npcId)
                 .texturePath(texturePath)
@@ -220,7 +222,7 @@ public class DSLEntitySpawner {
                 .collideDamage(damage)
                 .fightAI(() -> AIFactory.randomFightAI())
                 .idleAI(() -> AIFactory.randomIdleAI())
-                .transitionAI(() -> new contrib.utils.components.ai.transition.SelfDefendTransition())
+                .transitionAI(() -> new RangeTransition(6f)) // Aggressive: attacks when player within 6 tiles
                 .build(position);
 
         LOGGER.log(CustomLogLevel.DEBUG,
