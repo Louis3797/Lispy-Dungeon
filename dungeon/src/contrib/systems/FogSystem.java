@@ -16,23 +16,26 @@ import java.util.*;
 /**
  * The FogSystem class is responsible for controlling the fog in the game.
  *
- * <p>The fog is a game mechanic where areas of the game world that are not in the player's line of
- * sight are obscured. This class maintains a set of tiles that are currently darkened (not visible
- * to the player) and a list of entities that are hidden. It also keeps track of the last known
- * position of the hero (player character) and whether the fog system is currently active.
+ * <p>
+ * The fog is a game mechanic where areas of the game world that are not in the
+ * player's line of
+ * sight are obscured. This class maintains a set of tiles that are currently
+ * darkened (not visible
+ * to the player) and a list of entities that are hidden. It also keeps track of
+ * the last known
+ * position of the hero (player character) and whether the fog system is
+ * currently active.
  *
  * @author Flamtky (for the DevDungeon)
  */
 public class FogSystem extends System {
   private static final int DISTANCE_TRANSITION_SIZE = 2; // size of distance transition (in tiles)
-  private static final int HIDE_ENTITY_THRESHOLD =
-      0xFFFFFF99; // tint color threshold for hiding entities
+  private static final int HIDE_ENTITY_THRESHOLD = 0xFFFFFF99; // tint color threshold for hiding entities
   private static final int[][] mult = { // needed for casting light
-    {1, 0, 0, -1}, {0, 1, -1, 0}, {0, -1, -1, 0}, {-1, 0, 0, -1},
-    {-1, 0, 0, 1}, {0, -1, 1, 0}, {0, 1, 1, 0}, {1, 0, 0, 1}
+      { 1, 0, 0, -1 }, { 0, 1, -1, 0 }, { 0, -1, -1, 0 }, { -1, 0, 0, -1 },
+      { -1, 0, 0, 1 }, { 0, -1, 1, 0 }, { 0, 1, 1, 0 }, { 1, 0, 0, 1 }
   };
-  private static final float TINT_COLOR_WALL_DISTANCE_SCALE =
-      1.5f; // scale factor for behind wall distance fog
+  private static final float TINT_COLOR_WALL_DISTANCE_SCALE = 1.5f; // scale factor for behind wall distance fog
   private static final float TINT_COLOR_DISTANCE_SCALE = .5f; // scale factor for distance fog
 
   /** The view distance (range for tiles that are fully visible). */
@@ -48,7 +51,8 @@ public class FogSystem extends System {
   /**
    * Resets the FogSystem.
    *
-   * <p>This method clears the sets of darkened tiles and hidden entities.
+   * <p>
+   * This method clears the sets of darkened tiles and hidden entities.
    *
    * @param revert If true, the FogSystem will also revert to its initial state.
    * @see #reset()
@@ -65,9 +69,13 @@ public class FogSystem extends System {
   /**
    * Resets the FogSystem to its initial state.
    *
-   * <p>This method clears the sets of darkened tiles and hidden entities, and resets the last known
-   * hero position. The last known hero position is set to the current hero's position if a hero
-   * exists, otherwise it is set to (0,0). This method also reverts the FogSystem to its
+   * <p>
+   * This method clears the sets of darkened tiles and hidden entities, and resets
+   * the last known
+   * hero position. The last known hero position is set to the current hero's
+   * position if a hero
+   * exists, otherwise it is set to (0,0). This method also reverts the FogSystem
+   * to its
    *
    * @see #revealAll()
    */
@@ -75,7 +83,9 @@ public class FogSystem extends System {
     reset(true);
   }
 
-  /** Reverts the FogSystem. This reveals all darkened tiles and hidden entities. */
+  /**
+   * Reverts the FogSystem. This reveals all darkened tiles and hidden entities.
+   */
   public void revealAll() {
     revertTilesBackToLight(darkenedTiles.keySet().stream().toList());
     revealHiddenEntities();
@@ -84,14 +94,20 @@ public class FogSystem extends System {
   /**
    * Sets the view distance of the FogSystem.
    *
-   * <p>The view distance is the range of tiles that are fully visible to the player. The view
-   * distance is used to calculate the tint color of tiles that are beyond the view distance.
+   * <p>
+   * The view distance is the range of tiles that are fully visible to the player.
+   * The view
+   * distance is used to calculate the tint color of tiles that are beyond the
+   * view distance.
    *
-   * <p>NOTE: it can't be greater than the {@link #MAX_VIEW_DISTANCE maximum view distance}.
+   * <p>
+   * NOTE: it can't be greater than the {@link #MAX_VIEW_DISTANCE maximum view
+   * distance}.
    *
    * @param newViewDistance The new view distance of the FogSystem.
-   * @throws IllegalArgumentException if the view distance is greater than the maximum view distance
-   *     or less than 0.
+   * @throws IllegalArgumentException if the view distance is greater than the
+   *                                  maximum view distance
+   *                                  or less than 0.
    */
   public static void currentViewDistance(int newViewDistance) {
     if (newViewDistance > MAX_VIEW_DISTANCE || newViewDistance < 0) {
@@ -122,7 +138,9 @@ public class FogSystem extends System {
   /**
    * Sets the active state of the FogSystem.
    *
-   * <p>If the FogSystem is set to inactive, it also resets the FogSystem to its initial state.
+   * <p>
+   * If the FogSystem is set to inactive, it also resets the FogSystem to its
+   * initial state.
    *
    * @param active The new active state of the FogSystem.
    */
@@ -150,7 +168,8 @@ public class FogSystem extends System {
         // Translate the dx, dy coordinates into map coordinates
         int X = (int) (heroPos.x() + (dx * xx + dy * xy));
         int Y = (int) (heroPos.y() + (dx * yx + dy * yy));
-        // l_slope and r_slope store the slopes of the left and right extremities of the square
+        // l_slope and r_slope store the slopes of the left and right extremities of the
+        // square
         // we're considering
         float lSlope = (dx - 0.5f) / (dy + 0.5f);
         float rSlope = (dx + 0.5f) / (dy - 0.5f);
@@ -186,13 +205,15 @@ public class FogSystem extends System {
           }
         }
       }
-      if (blocked) break;
+      if (blocked)
+        break;
     }
     return visibleTiles;
   }
 
   private void darkenTile(Tile tile, int maxDistance, float scale, Point heroPos) {
-    if (tile == null) return;
+    if (tile == null)
+      return;
     int newTint = getTintColor(tile.position(), maxDistance, scale, heroPos);
     int orgTint = tile.tintColor();
     int mixedTint = orgTint == -1 ? newTint : (orgTint & 0xFFFFFF00) | (newTint & 0x000000FF);
@@ -203,22 +224,27 @@ public class FogSystem extends System {
   }
 
   /**
-   * Calculates the tint color for a tile based on its distance from the hero's position. The tint
-   * color is represented as an ARGB integer, where the alpha component is adjusted based on the
-   * distance. The closer the tile is to the hero, the more transparent (closer to white) it
+   * Calculates the tint color for a tile based on its distance from the hero's
+   * position. The tint
+   * color is represented as an ARGB integer, where the alpha component is
+   * adjusted based on the
+   * distance. The closer the tile is to the hero, the more transparent (closer to
+   * white) it
    * becomes. If the tile is beyond the view distance, it is fully opaque.
    *
-   * @param tilePos The position of the tile for which to calculate the tint color.
-   * @param maxDistance The maximum distance from the hero's position at which the tile is fully
-   *     opaque.
-   * @param scale The scale factor for the distance. The larger the scale, the more transparent the
-   *     tiles will be.
-   * @param heroPos The position of the hero.
+   * @param tilePos     The position of the tile for which to calculate the tint
+   *                    color.
+   * @param maxDistance The maximum distance from the hero's position at which the
+   *                    tile is fully
+   *                    opaque.
+   * @param scale       The scale factor for the distance. The larger the scale,
+   *                    the more transparent the
+   *                    tiles will be.
+   * @param heroPos     The position of the hero.
    * @return The calculated tint color as an ARGB integer.
    */
   private int getTintColor(Point tilePos, int maxDistance, float scale, Point heroPos) {
-    double distance =
-        heroPos.floor().distance(tilePos); // point -> coordinate -> point to floor the value
+    double distance = heroPos.floor().distance(tilePos); // point -> coordinate -> point to floor the value
     if (distance > maxDistance) {
       return 0x000000FF; // Black with full opacity (fully dark)
     }
@@ -248,11 +274,10 @@ public class FogSystem extends System {
         .filter(entity -> entity.isPresent(DrawComponent.class))
         .forEach(
             entity -> {
-              DrawComponent dc =
-                  entity
-                      .fetch(DrawComponent.class)
-                      .orElseThrow(
-                          () -> MissingComponentException.build(entity, DrawComponent.class));
+              DrawComponent dc = entity
+                  .fetch(DrawComponent.class)
+                  .orElseThrow(
+                      () -> MissingComponentException.build(entity, DrawComponent.class));
               dc.setVisible(false);
               hiddenEntities.add(entity);
             });
@@ -260,16 +285,14 @@ public class FogSystem extends System {
 
   private void revealHiddenEntities() {
     for (Entity entity : hiddenEntities) {
-      PositionComponent pc =
-          entity
-              .fetch(PositionComponent.class)
-              .orElseThrow(() -> MissingComponentException.build(entity, PositionComponent.class));
+      PositionComponent pc = entity
+          .fetch(PositionComponent.class)
+          .orElseThrow(() -> MissingComponentException.build(entity, PositionComponent.class));
       Tile tile = Game.tileAt(pc.position()).orElse(null);
       if (!darkenedTiles.containsKey(tile) || tile.tintColor() >= HIDE_ENTITY_THRESHOLD) {
-        DrawComponent dc =
-            entity
-                .fetch(DrawComponent.class)
-                .orElseThrow(() -> MissingComponentException.build(entity, DrawComponent.class));
+        DrawComponent dc = entity
+            .fetch(DrawComponent.class)
+            .orElseThrow(() -> MissingComponentException.build(entity, DrawComponent.class));
         dc.setVisible(true);
       }
     }
@@ -277,10 +300,12 @@ public class FogSystem extends System {
 
   @Override
   public void execute() {
-    if (!active) return;
+    if (!active)
+      return;
 
     Point heroPos = EntityUtils.getHeroPosition();
-    if (heroPos == null) return; // no hero, no fog
+    if (heroPos == null)
+      return; // no hero, no fog
 
     List<Tile> allTilesInView = LevelUtils.tilesInRange(heroPos, MAX_VIEW_DISTANCE);
     // Revert all darkened tiles back to light that are not in view
@@ -309,12 +334,11 @@ public class FogSystem extends System {
     // Handle tiles that are beyond the view distance
     distancedTiles.removeAll(LevelUtils.tilesInRange(heroPos, currentViewDistance));
     distancedTiles.forEach(
-        (tile) ->
-            darkenTile(
-                tile,
-                currentViewDistance + DISTANCE_TRANSITION_SIZE,
-                TINT_COLOR_DISTANCE_SCALE,
-                heroPos));
+        (tile) -> darkenTile(
+            tile,
+            currentViewDistance + DISTANCE_TRANSITION_SIZE,
+            TINT_COLOR_DISTANCE_SCALE,
+            heroPos));
     visibleTiles.removeAll(distancedTiles); // remove distanced tiles from visible tiles
     allTilesInView.removeAll(distancedTiles); // and from tile behind walls
 
@@ -337,9 +361,12 @@ public class FogSystem extends System {
   /**
    * Updates the tile in the fog system.
    *
-   * <p>This method updates the tile in the fog system. If the old tile is darkened, the tint color
+   * <p>
+   * This method updates the tile in the fog system. If the old tile is darkened,
+   * the tint color
    * is transferred to the new tile. This happens after {@link
-   * core.level.elements.ILevel#changeTileElementType(Tile, LevelElement) changing the tile element
+   * core.level.elements.ILevel#changeTileElementType(Tile, LevelElement) changing
+   * the tile element
    * type}.
    *
    * @param oldTile The old tile.

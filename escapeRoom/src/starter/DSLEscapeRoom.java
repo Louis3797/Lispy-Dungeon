@@ -94,6 +94,13 @@ public class DSLEscapeRoom {
             Game.add(new ManaBarSystem());
             Game.add(new StaminaBarSystem());
 
+            // Configure Fog of War if enabled
+            if (definition.isFogOfWarEnabled()) {
+                LOGGER.info("Enabling Fog of War with view distance: " + definition.getFogViewDistance());
+                Game.add(new FogSystem());
+                FogSystem.currentViewDistance(definition.getFogViewDistance());
+            }
+
             // Create and load the level from DSL
             DungeonLevel level = DSLLevelLoader.createLevel(definition);
             Game.currentLevel(level);
@@ -145,13 +152,6 @@ public class DSLEscapeRoom {
 
             // Spawn items, NPCs, and monsters from DSL
             DSLEntitySpawner.spawnEntities(definition);
-
-            // Configure Fog of War if enabled
-            if (definition.isFogOfWarEnabled()) {
-                LOGGER.info("Enabling Fog of War with view distance: " + definition.getFogViewDistance());
-                Game.add(new FogSystem());
-                FogSystem.currentViewDistance(definition.getFogViewDistance());
-            }
 
             // Apply camera zoom if specified
             if (definition.getCameraZoom() != 1.0f) {

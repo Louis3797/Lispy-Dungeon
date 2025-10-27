@@ -48,10 +48,13 @@ public class InventoryGUI extends CombinableGUI {
   private static final TextureRegion background, hoverBackground;
 
   /**
-   * Boolean to check if the opened inventory belongs to the hero. Items that are in an inventory
+   * Boolean to check if the opened inventory belongs to the hero. Items that are
+   * in an inventory
    * which does not belong to the hero, e.g. a treasure chest, are not usable.
    *
-   * <p>Will be set to true if the hero inventory is opened and set to false if it's closed.
+   * <p>
+   * Will be set to true if the hero inventory is opened and set to false if it's
+   * closed.
    */
   public static boolean inHeroInventory = false;
 
@@ -63,11 +66,10 @@ public class InventoryGUI extends CombinableGUI {
     texture = new Texture(pixmap);
     background = new TextureRegion(texture, 0, 0, 1, 1);
     hoverBackground = new TextureRegion(texture, 1, 0, 1, 1);
-    bitmapFont =
-        new BitmapFont(
-            Gdx.files.internal(FONT_FNT.pathString()),
-            Gdx.files.internal(FONT_PNG.pathString()),
-            false);
+    bitmapFont = new BitmapFont(
+        Gdx.files.internal(FONT_FNT.pathString()),
+        Gdx.files.internal(FONT_PNG.pathString()),
+        false);
   }
 
   private final InventoryComponent inventoryComponent;
@@ -80,25 +82,26 @@ public class InventoryGUI extends CombinableGUI {
   /**
    * Create a new inventory GUI.
    *
-   * @param title the title of the inventory
+   * @param title              the title of the inventory
    * @param inventoryComponent the inventory component on which the GUI is based.
-   * @param maxItemsPerRow the maximum number of items per row in the inventory
+   * @param maxItemsPerRow     the maximum number of items per row in the
+   *                           inventory
    */
   public InventoryGUI(String title, InventoryComponent inventoryComponent, int maxItemsPerRow) {
     super();
     this.inventoryComponent = inventoryComponent;
     this.title = title;
     this.maxItemsPerRow = maxItemsPerRow;
-    this.slotsPerRow =
-        Math.max(Math.min(maxItemsPerRow, this.inventoryComponent.items().length), 1);
+    this.slotsPerRow = Math.max(Math.min(maxItemsPerRow, this.inventoryComponent.items().length), 1);
     this.addInputListener();
   }
 
   /**
-   * Create a new inventory GUI. The max number of items per row is set to the default value. (see
+   * Create a new inventory GUI. The max number of items per row is set to the
+   * default value. (see
    * {@link InventoryGUI#DEFAULT_MAX_ITEMS_PER_ROW})
    *
-   * @param title the title of the inventory
+   * @param title              the title of the inventory
    * @param inventoryComponent the inventory component on which the GUI is based.
    */
   public InventoryGUI(String title, InventoryComponent inventoryComponent) {
@@ -133,7 +136,8 @@ public class InventoryGUI extends CombinableGUI {
     this.drawItems(batch);
 
     // Draw inventory title
-    if (!this.title.isEmpty()) this.drawInventoryTitle(batch);
+    if (!this.title.isEmpty())
+      this.drawInventoryTitle(batch);
   }
 
   @Override
@@ -157,12 +161,12 @@ public class InventoryGUI extends CombinableGUI {
 
   private void drawItems(Batch batch) {
     for (int i = 0; i < this.inventoryComponent.items().length; i++) {
-      if (this.inventoryComponent.items()[i] == null) continue;
+      if (this.inventoryComponent.items()[i] == null)
+        continue;
       float x = this.x() + this.slotSize * (i % this.slotsPerRow) + (2 * BORDER_PADDING);
-      float y =
-          this.y()
-              + this.slotSize * (float) Math.floor((i / (float) this.slotsPerRow))
-              + (2 * BORDER_PADDING);
+      float y = this.y()
+          + this.slotSize * (float) Math.floor((i / (float) this.slotsPerRow))
+          + (2 * BORDER_PADDING);
 
       batch.draw(
           this.inventoryComponent.items()[i].inventoryAnimation().update(),
@@ -177,18 +181,22 @@ public class InventoryGUI extends CombinableGUI {
     if (this.textureSlots == null
         || this.textureSlots.getWidth() != this.width()
         || this.textureSlots.getHeight() != this.height()) {
-      if (this.textureSlots != null) this.textureSlots.dispose();
+      if (this.textureSlots != null)
+        this.textureSlots.dispose();
 
-      // Minimized windows have 0 width and height -> container will be 0x0 -> Crash on pixmap
+      // Minimized windows have 0 width and height -> container will be 0x0 -> Crash
+      // on pixmap
       // creation
-      if (this.width() <= 0 || this.height() <= 0) return;
+      if (this.width() <= 0 || this.height() <= 0)
+        return;
 
       Pixmap pixmap = new Pixmap(this.width(), this.height(), Pixmap.Format.RGBA8888);
       pixmap.setColor(BORDER_COLOR);
       int rows = (int) Math.ceil(this.inventoryComponent.items().length / (float) this.slotsPerRow);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < this.slotsPerRow; x++) {
-          if (x + y * this.slotsPerRow >= this.inventoryComponent.items().length) break;
+          if (x + y * this.slotsPerRow >= this.inventoryComponent.items().length)
+            break;
           pixmap.drawRectangle(
               x * this.slotSize + BORDER_PADDING,
               pixmap.getHeight() - ((y * this.slotSize) + BORDER_PADDING),
@@ -223,15 +231,19 @@ public class InventoryGUI extends CombinableGUI {
     Point relMousePos = new Point(mousePos.x() - this.x(), mousePos.y() - this.y());
 
     // Check if mouse is in inventory bounds
-    if (mousePos.x() < this.x() || mousePos.x() > this.x() + this.width()) return;
-    if (mousePos.y() < this.y() || mousePos.y() > this.y() + this.height()) return;
+    if (mousePos.x() < this.x() || mousePos.x() > this.x() + this.width())
+      return;
+    if (mousePos.y() < this.y() || mousePos.y() > this.y() + this.height())
+      return;
 
     // Check if mouse is dragging an item
-    if (this.dragAndDrop().isDragging()) return;
+    if (this.dragAndDrop().isDragging())
+      return;
 
     int hoveredSlot = this.getSlotByCoordinates(relMousePos.x(), relMousePos.y());
     Item item = InventoryGUI.this.inventoryComponent.get(hoveredSlot);
-    if (item == null) return;
+    if (item == null)
+      return;
 
     String title = item.displayName();
     String description = UIUtils.formatString(item.description());
@@ -269,7 +281,8 @@ public class InventoryGUI extends CombinableGUI {
 
             int draggedSlot = InventoryGUI.this.getSlotByCoordinates(x, y);
             Item item = InventoryGUI.this.inventoryComponent.get(draggedSlot);
-            if (item == null) return null;
+            if (item == null)
+              return null;
 
             DragAndDrop.Payload payload = new DragAndDrop.Payload();
             payload.setObject(
@@ -304,9 +317,8 @@ public class InventoryGUI extends CombinableGUI {
                           .orElseThrow(MissingHeroException::new)
                           .fetch(PositionComponent.class)
                           .orElseThrow(
-                              () ->
-                                  MissingComponentException.build(
-                                      Game.hero().get(), PositionComponent.class))
+                              () -> MissingComponentException.build(
+                                  Game.hero().get(), PositionComponent.class))
                           .position());
             }
           }
@@ -387,8 +399,7 @@ public class InventoryGUI extends CombinableGUI {
                   return false;
                 }
 
-                UIComponent uiComponent =
-                    Game.hero().flatMap(e -> e.fetch(UIComponent.class)).orElse(null);
+                UIComponent uiComponent = Game.hero().flatMap(e -> e.fetch(UIComponent.class)).orElse(null);
                 if (uiComponent != null
                     && uiComponent.dialog() instanceof GUICombination guiCombination) {
                   // if two inventories are open, transfer items between them if key is pressed
@@ -429,10 +440,10 @@ public class InventoryGUI extends CombinableGUI {
       Entity hero = Game.hero().orElseThrow(() -> new NullPointerException("There is no hero"));
       PositionComponent heroPosition = hero.fetch(PositionComponent.class)
           .orElseThrow(() -> new MissingComponentException("Hero has no PositionComponent"));
-      
+
       // Remove item from inventory
       this.inventoryComponent.remove(item);
-      
+
       // Create world item at hero's position
       Entity droppedItem = WorldItemBuilder.buildWorldItem(item, heroPosition.position());
       Game.add(droppedItem);
@@ -441,12 +452,9 @@ public class InventoryGUI extends CombinableGUI {
 
   @Override
   protected Vector2 preferredSize(GUICombination.AvailableSpace availableSpace) {
-    int rows =
-        (int)
-            Math.max(
-                Math.ceil(this.inventoryComponent.items().length / (float) this.slotsPerRow), 1.0f);
-    int width =
-        (int) Math.min(availableSpace.width(), (Game.stage().orElseThrow().getWidth() * 0.75f));
+    int rows = (int) Math.max(
+        Math.ceil(this.inventoryComponent.items().length / (float) this.slotsPerRow), 1.0f);
+    int width = (int) Math.min(availableSpace.width(), (Game.stage().orElseThrow().getWidth() * 0.75f));
     int height = (width / this.slotsPerRow) * rows;
 
     if (height > availableSpace.height()) {
