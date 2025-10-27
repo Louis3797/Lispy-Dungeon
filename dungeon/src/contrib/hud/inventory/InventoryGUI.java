@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import contrib.components.InventoryComponent;
 import contrib.components.UIComponent;
 import contrib.configuration.KeyboardConfig;
+import contrib.entities.WorldItemBuilder;
 import contrib.hud.UIUtils;
 import contrib.hud.crafting.CraftingGUI;
 import contrib.hud.elements.CombinableGUI;
@@ -362,6 +363,12 @@ public class InventoryGUI extends CombinableGUI {
                             InventoryGUI.this.getSlotByMousePosition()));
                     return true;
                   }
+                  if (KeyboardConfig.DROP_ITEM.value() == keycode) {
+                    InventoryGUI.this.dropItem(
+                        InventoryGUI.this.inventoryComponent.get(
+                            InventoryGUI.this.getSlotByMousePosition()));
+                    return true;
+                  }
                 }
                 return false;
               }
@@ -415,6 +422,21 @@ public class InventoryGUI extends CombinableGUI {
   private void useItem(Item item) {
     if (item != null)
       item.use(Game.hero().orElseThrow(() -> new NullPointerException("There is no hero")));
+  }
+
+  private void dropItem(Item item) {
+    if (item != null) {
+      Entity hero = Game.hero().orElseThrow(() -> new NullPointerException("There is no hero"));
+      PositionComponent heroPosition = hero.fetch(PositionComponent.class)
+          .orElseThrow(() -> new MissingComponentException("Hero has no PositionComponent"));
+      
+      // Remove item from inventory
+      this.inventoryComponent.remove(item);
+      
+      // Create world item at hero's position
+      Entity droppedItem = WorldItemBuilder.buildWorldItem(item, heroPosition.position());
+      Game.add(droppedItem);
+    }
   }
 
   @Override

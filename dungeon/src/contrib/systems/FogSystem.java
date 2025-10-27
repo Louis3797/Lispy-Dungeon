@@ -220,12 +220,12 @@ public class FogSystem extends System {
     double distance =
         heroPos.floor().distance(tilePos); // point -> coordinate -> point to floor the value
     if (distance > maxDistance) {
-      return 0xFFFFFF00;
+      return 0x000000FF; // Black with full opacity (fully dark)
     }
     double distanceFactor = Math.min(1.0, distance * scale / (maxDistance));
     int alpha = (int) (255 * (1 - distanceFactor));
 
-    return 0xFFFFFF00 | alpha;
+    return 0x00000000 | alpha; // Black color (RGB=0,0,0) with calculated alpha
   }
 
   private void revertTilesBackToLight(List<Tile> visibleTiles) {
