@@ -43,6 +43,9 @@ public class DSLEntitySpawner {
     private static final String DEFAULT_FRIENDLY_NPC_TEXTURE = "character/monster/pumpkin_dude";
     private static final String DEFAULT_ITEM_TYPE = "tool";
 
+    // Difficulty modifier instance
+    private static DifficultyModifier difficultyModifier = null;
+
     /**
      * Spawns all entities from the DSL definition.
      * 
@@ -53,6 +56,13 @@ public class DSLEntitySpawner {
         Objects.requireNonNull(definition, "definition cannot be null");
 
         LOGGER.info("=== Spawning Entities ===");
+
+        // Initialize difficulty modifier from metadata
+        if (definition.metadata != null && definition.metadata.difficulty != null) {
+            difficultyModifier = new DifficultyModifier(definition.metadata.difficulty);
+        } else {
+            difficultyModifier = new DifficultyModifier("normal");
+        }
 
         // Spawn items
         if (definition.items != null && !definition.items.isEmpty()) {
@@ -210,8 +220,12 @@ public class DSLEntitySpawner {
         String texturePath = npcDef.texture != null ? npcDef.texture : DEFAULT_HOSTILE_NPC_TEXTURE;
 
         // Configure health and damage
-        int health = npcDef.health > 0 ? npcDef.health : DEFAULT_NPC_HEALTH;
-        int damage = npcDef.damage > 0 ? npcDef.damage : DEFAULT_NPC_DAMAGE;
+        int baseHealth = npcDef.health > 0 ? npcDef.health : DEFAULT_NPC_HEALTH;
+        int baseDamage = npcDef.damage > 0 ? npcDef.damage : DEFAULT_NPC_DAMAGE;
+
+        // Apply difficulty scaling
+        int health = difficultyModifier != null ? difficultyModifier.scaleMonsterHealth(baseHealth) : baseHealth;
+        int damage = difficultyModifier != null ? difficultyModifier.scaleMonsterDamage(baseDamage) : baseDamage;
 
         // Use MonsterBuilder to create the entity with proper configuration
         // Use RangeTransition for aggressive behavior - attacks when player comes close

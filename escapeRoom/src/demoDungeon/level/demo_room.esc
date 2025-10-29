@@ -3,9 +3,9 @@ escape_room:
     metadata:
         title: "The Cursed Fortress"
         description: "A massive dungeon filled with dangers, puzzles, and treasures. Navigate through fog, battle monsters, and solve riddles to escape!"
-        difficulty: "hard"
+        difficulty: "extreme"
+        fog_of_war: false
         max_time: 60
-        fog_of_war: true
         view_distance: 6
         camera_zoom: 1.0
 

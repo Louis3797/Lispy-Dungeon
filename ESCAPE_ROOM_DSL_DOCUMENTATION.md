@@ -239,7 +239,7 @@ Defines basic information about your escape room.
 metadata:
     title: "String"           # Display name (required)
     description: "String"     # Brief description (required)
-    difficulty: "easy"        # Difficulty: "easy", "medium", "hard" (required)
+    difficulty: "easy"        # Difficulty: "easy", "normal", "hard", "extreme" (required)
     max_time: 30              # Time limit in minutes (required)
     fog_of_war: false         # Enable fog of war (optional, default: false)
     view_distance: 7          # Tiles visible around player with fog (optional, default: 7)
@@ -252,12 +252,17 @@ metadata:
 metadata:
     title: "The Ancient Temple"
     description: "Uncover the secrets hidden within"
-    difficulty: "medium"
+    difficulty: "easy"
     max_time: 30
     fog_of_war: true
     view_distance: 5
     camera_zoom: 0.8
 ```
+
+Easy: Monsters have 70% health/damage, player has 130% stats
+Normal: Standard 100% for both
+Hard: Monsters have 150% health/damage, player has 80% stats
+Extreme: Monsters have 200% health/damage, player has 60% stats
 
 ---
 

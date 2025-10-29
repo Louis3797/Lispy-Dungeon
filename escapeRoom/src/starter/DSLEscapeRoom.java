@@ -19,7 +19,6 @@ import org.antlr.v4.runtime.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,6 +31,8 @@ public class DSLEscapeRoom {
 
     private static final String DSL_FILE = "escapeRoom/src/demoDungeon/level/demo_room.esc";
 
+    private static EscapeRoomDefinition parsedDefinition = null;
+
     public static void main(String[] args) throws IOException {
         // Initialize game with INFO level to see parsing details
         Game.initBaseLogger(CustomLogLevel.DEBUG);
@@ -39,6 +40,7 @@ public class DSLEscapeRoom {
         // Parse the DSL file
         LOGGER.info("=== Loading Escape Room DSL ===");
         EscapeRoomDefinition definition = parseDSL(DSL_FILE);
+        parsedDefinition = definition; // Store for difficulty system
 
         // Configure game setup
         configureGame(definition);
@@ -172,32 +174,55 @@ public class DSLEscapeRoom {
 
     /**
      * Applies custom player stats from DSL to the hero entity.
+     * Also applies difficulty scaling.
      */
     private static void applyCustomPlayerStats(Entity hero, dsl.Player player) {
-        // Apply custom health
+        // Get difficulty modifier
+        dsl.DifficultyModifier difficultyMod = null;
+        EscapeRoomDefinition currentDef = parsedDefinition; // Store reference
+        if (currentDef != null && currentDef.metadata != null) {
+            difficultyMod = new dsl.DifficultyModifier(currentDef.metadata.difficulty);
+        }
+
+        // Apply custom health (with difficulty scaling)
         if (player.health != null) {
+            int finalHealth = player.health;
+            if (difficultyMod != null) {
+                finalHealth = difficultyMod.scalePlayerHealth(player.health);
+            }
+            final int healthToSet = finalHealth;
             hero.fetch(contrib.components.HealthComponent.class).ifPresent(hc -> {
-                hc.maximalHealthpoints(player.health);
-                hc.currentHealthpoints(player.health);
-                LOGGER.info("Custom health: " + player.health);
+                hc.maximalHealthpoints(healthToSet);
+                hc.currentHealthpoints(healthToSet);
+                LOGGER.info("Custom health (after difficulty): " + healthToSet);
             });
         }
 
-        // Apply custom mana
+        // Apply custom mana (with difficulty scaling)
         if (player.mana != null) {
+            int finalMana = player.mana;
+            if (difficultyMod != null) {
+                finalMana = difficultyMod.scalePlayerMana(player.mana);
+            }
+            final float manaToSet = finalMana;
             hero.fetch(contrib.components.ManaComponent.class).ifPresent(mc -> {
-                mc.maxAmount(player.mana.floatValue());
-                mc.currentAmount(player.mana.floatValue());
-                LOGGER.info("Custom mana: " + player.mana);
+                mc.maxAmount(manaToSet);
+                mc.currentAmount(manaToSet);
+                LOGGER.info("Custom mana (after difficulty): " + manaToSet);
             });
         }
 
-        // Apply custom stamina
+        // Apply custom stamina (with difficulty scaling)
         if (player.stamina != null) {
+            int finalStamina = player.stamina;
+            if (difficultyMod != null) {
+                finalStamina = difficultyMod.scalePlayerStamina(player.stamina);
+            }
+            final float staminaToSet = finalStamina;
             hero.fetch(contrib.components.StaminaComponent.class).ifPresent(sc -> {
-                sc.maxAmount(player.stamina.floatValue());
-                sc.currentAmount(player.stamina.floatValue());
-                LOGGER.info("Custom stamina: " + player.stamina);
+                sc.maxAmount(staminaToSet);
+                sc.currentAmount(staminaToSet);
+                LOGGER.info("Custom stamina (after difficulty): " + staminaToSet);
             });
         }
 
