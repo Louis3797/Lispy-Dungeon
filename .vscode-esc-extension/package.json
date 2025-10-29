@@ -1,0 +1,35 @@
+{
+    "name": "escape-room-dsl",
+    "displayName": "Escape Room DSL",
+    "description": "Syntax highlighting for Escape Room DSL (.esc) files",
+    "version": "0.1.0",
+    "publisher": "lispy-dungeon",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "escape-room-dsl",
+                "aliases": [
+                    "Escape Room DSL",
+                    "esc"
+                ],
+                "extensions": [
+                    ".esc"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "escape-room-dsl",
+                "scopeName": "source.esc",
+                "path": "./syntaxes/esc.tmLanguage.json"
+            }
+        ]
+    }
+}
