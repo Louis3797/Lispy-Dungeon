@@ -10,7 +10,7 @@ import core.systems.InputSystem;
 import core.utils.Point;
 import core.utils.logging.CustomLogLevel;
 import dsl.EscapeRoomDefinition;
-import dsl.EscapeRoomInterpreter;
+import dsl.EscapeRoomVisitor;
 import dsl.DSLLevelLoader;
 import dsl.DSLEntitySpawner;
 import dsl.parser.EscapeRoomDSLLexer;
@@ -63,8 +63,8 @@ public class DSLEscapeRoom {
         // Parse
         EscapeRoomDSLParser.StartContext tree = parser.start();
 
-        // Interpret
-        EscapeRoomDefinition definition = EscapeRoomInterpreter.interpret(tree);
+        // Interpret using Visitor pattern (cleaner and more maintainable)
+        EscapeRoomDefinition definition = EscapeRoomVisitor.interpret(tree);
 
         LOGGER.info("Parsed: " + definition);
         return definition;

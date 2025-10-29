@@ -2,7 +2,7 @@ package starter;
 
 import dsl.parser.EscapeRoomDSLLexer;
 import dsl.parser.EscapeRoomDSLParser;
-import dsl.EscapeRoomInterpreter;
+
 import org.antlr.v4.runtime.*;
 
 import core.Game;
@@ -49,11 +49,6 @@ public class DSLParserMain {
         // Print the parse tree (for debugging)
         LOGGER.info("=== Parse Tree ===");
         LOGGER.info(tree.toStringTree(parser));
-
-        // Interpret the parsed tree (ANTLR approach - has indentation issues)
-        LOGGER.info("=== ANTLR Interpreter (may have issues) ===");
-        Object definition = EscapeRoomInterpreter.interpret(tree);
-        LOGGER.info(definition.toString());
 
         LOGGER.info("DSL parsing and interpretation complete!");
     }

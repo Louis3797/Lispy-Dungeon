@@ -22,7 +22,9 @@ public enum CharacterClass {
   /**
    * Wizard character class.
    *
-   * <p>A magic-focused class specializing in ranged spell attacks and self-healing. Ideal for
+   * <p>
+   * A magic-focused class specializing in ranged spell attacks and self-healing.
+   * Ideal for
    * players who prefer high damage from a distance and utility spells.
    */
   WIZARD(
@@ -31,7 +33,7 @@ public enum CharacterClass {
       1.3f,
       15,
       Set.of(
-          new FireballSkill(SkillTools::cursorPositionAsPoint, new Tuple<>(Resource.MANA, 30)),
+          new FireballSkill(SkillTools::cursorPositionAsPoint, new Tuple<>(Resource.MANA, 10)),
           new SelfHealSkill(300, 5, new Tuple<>(Resource.MANA, 80))),
       Set.of(new ItemPotionHealth()),
       6,
@@ -43,7 +45,9 @@ public enum CharacterClass {
   /**
    * Hunter character class.
    *
-   * <p>A bow-focused class with high durability and stamina, starts with bow and arrows and can do
+   * <p>
+   * A bow-focused class with high durability and stamina, starts with bow and
+   * arrows and can do
    * a short bursts of speed.
    */
   HUNTER(
@@ -80,19 +84,21 @@ public enum CharacterClass {
   /**
    * Constructs a new {@code CharacterClass} with the specified attributes.
    *
-   * <p>This constructor initializes all core properties of a character class, including movement,
+   * <p>
+   * This constructor initializes all core properties of a character class,
+   * including movement,
    * health, skills, items, and resource pools.
    *
-   * @param textures the path to the character's texture or sprite
-   * @param speed the base movement speed of the character
-   * @param mass the mass of the character, used in physics calculations
-   * @param hp the starting health points of the character
-   * @param startSkills the set of skills the character starts with
-   * @param startItems the set of items the character starts with
+   * @param textures      the path to the character's texture or sprite
+   * @param speed         the base movement speed of the character
+   * @param mass          the mass of the character, used in physics calculations
+   * @param hp            the starting health points of the character
+   * @param startSkills   the set of skills the character starts with
+   * @param startItems    the set of items the character starts with
    * @param inventorySize the maximum number of items the character can carry
-   * @param mana the starting mana points
-   * @param manaRestore the rate at which mana regenerates over time
-   * @param energy the starting stamina (or energy) points
+   * @param mana          the starting mana points
+   * @param manaRestore   the rate at which mana regenerates over time
+   * @param energy        the starting stamina (or energy) points
    * @param energyRestore the rate at which stamina regenerates over time
    */
   CharacterClass(

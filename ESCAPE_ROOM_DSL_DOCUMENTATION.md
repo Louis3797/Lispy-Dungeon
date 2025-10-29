@@ -128,6 +128,7 @@ Once your escape room is loaded, use these controls:
 ### Interaction
 
 -   **E Key** - Interact with objects (read items, talk to NPCs, open doors)
+-   **G Key** - Drop item from inventory (item appears on ground where you're standing)
 -   **Inventory** - Automatically managed, use keys from inventory to unlock doors
 
 ### Quizzes
@@ -1306,7 +1307,7 @@ quiz_id:
 **HeroFactory:**
 
 -   Creates wizard or hunter based on DSL `player.class` property
--   **Wizard**: 15 HP, 100 mana, fireball skill (20 damage, 25 mana), heal skill
+-   **Wizard**: 15 HP, 100 mana, fireball skill (10 mana cost), heal skill (80 mana cost)
 -   **Hunter**: 35 HP, 120 stamina, bow skill (15 damage, 10 stamina), dash skill
 -   Both have `SkillComponent` for Q key/mouse casting
 -   Both have `InputComponent` for keyboard/mouse controls
