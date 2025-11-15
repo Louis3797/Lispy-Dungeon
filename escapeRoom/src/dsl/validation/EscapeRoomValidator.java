@@ -126,28 +126,31 @@ public class EscapeRoomValidator {
                         "rooms." + roomId));
             }
 
-            // Validate dimensions
-            if (room.width < 1) {
+            // Check if room has either dimensions or pattern
+            // Width/height of 0 means auto-size from pattern, which is valid
+            boolean hasExplicitDimensions = room.width > 0 && room.height > 0;
+            boolean hasPattern = room.pattern != null && !room.pattern.isEmpty();
+
+            if (!hasExplicitDimensions && !hasPattern) {
                 result.addError(new ValidationError(
                         ValidationError.ErrorType.INVALID_VALUE,
-                        "Room width must be positive: " + roomId,
+                        "Room must have either explicit width/height or a pattern: " + roomId,
+                        "rooms." + roomId));
+            }
+
+            // If dimensions are negative, that's an error
+            if (room.width < 0) {
+                result.addError(new ValidationError(
+                        ValidationError.ErrorType.INVALID_VALUE,
+                        "Room width cannot be negative: " + roomId,
                         "rooms." + roomId + ".width"));
             }
 
-            if (room.height < 1) {
+            if (room.height < 0) {
                 result.addError(new ValidationError(
                         ValidationError.ErrorType.INVALID_VALUE,
-                        "Room height must be positive: " + roomId,
+                        "Room height cannot be negative: " + roomId,
                         "rooms." + roomId + ".height"));
-            }
-
-            // Check if room has either dimensions or pattern
-            if ((room.width == 0 && room.height == 0) &&
-                    (room.pattern == null || room.pattern.isEmpty())) {
-                result.addWarning(new ValidationWarning(
-                        ValidationWarning.WarningType.SUGGESTED_IMPROVEMENT,
-                        "Room should have either width/height or pattern: " + roomId,
-                        "rooms." + roomId));
             }
         }
     }

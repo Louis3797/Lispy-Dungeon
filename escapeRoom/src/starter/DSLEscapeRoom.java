@@ -15,6 +15,10 @@ import dsl.DSLLevelLoader;
 import dsl.DSLEntitySpawner;
 import dsl.parser.EscapeRoomDSLLexer;
 import dsl.parser.EscapeRoomDSLParser;
+import dsl.validation.EscapeRoomValidator;
+import dsl.validation.ValidationResult;
+import dsl.validation.ValidationError;
+import dsl.validation.ValidationWarning;
 import org.antlr.v4.runtime.*;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,6 +72,41 @@ public class DSLEscapeRoom {
         // Interpret using Visitor pattern (cleaner and more maintainable)
         EscapeRoomDefinition definition = EscapeRoomVisitor.interpret(tree);
 
+        // Validate the definition
+        LOGGER.info("\n=== Validating DSL Definition ===");
+        EscapeRoomValidator validator = new EscapeRoomValidator();
+        ValidationResult result = validator.validate(definition);
+
+        // Log errors
+        if (!result.getErrors().isEmpty()) {
+            System.err.println("\n=== VALIDATION ERRORS ===");
+            LOGGER.severe("Found " + result.getErrors().size() + " validation errors:");
+            for (ValidationError error : result.getErrors()) {
+                String errorMsg = "  [" + error.getType() + "] " + error.getMessage();
+                System.err.println(errorMsg);
+                LOGGER.severe(errorMsg);
+            }
+        }
+
+        // Log warnings
+        if (!result.getWarnings().isEmpty()) {
+            System.err.println("\n=== VALIDATION WARNINGS ===");
+            LOGGER.warning("Found " + result.getWarnings().size() + " validation warnings:");
+            for (ValidationWarning warning : result.getWarnings()) {
+                String warnMsg = "  [" + warning.getType() + "] " + warning.getMessage();
+                System.err.println(warnMsg);
+                LOGGER.warning(warnMsg);
+            }
+        }
+
+        // If validation failed, throw exception
+        if (!result.isValid()) {
+            System.err.println("\n=== VALIDATION FAILED ===");
+            throw new RuntimeException(
+                    "DSL validation failed with " + result.getErrors().size() + " errors. See errors above.");
+        }
+
+        LOGGER.info("Validation passed ✓");
         LOGGER.info("Parsed: " + definition);
         return definition;
     }
