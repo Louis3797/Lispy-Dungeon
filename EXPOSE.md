@@ -38,11 +38,11 @@ Die DSL soll durch einen **ANTLR-basierten Parser** verarbeitet, validiert und i
 
 Features:
 
--   **Grammar Design**: ANTLR Grammatik mit Lexer/Parser-Regeln
--   **Interpreter**: Visitor-Pattern für AST-Traversierung
--   **Validation Framework**: Validierung der DSL mit hilfreichen Error Nachrichten bei Kompilierung
--   **Code Generation**: Transformation zu Game Engine Entities
--   **Tooling**: VS Code Extension für Syntax Highlighting
+-   **Grammar Design**: ANTLR Grammatik mit Lexer/Parser-Regeln.
+-   **Interpreter**: Visitor-Pattern für AST-Traversierung.
+-   **Validation Framework**: Validierung der DSL mit hilfreichen Error Nachrichten bei Kompilierung.
+-   **Code Generation**: Transformation zu Game Engine Entities.
+-   **Tooling**: VS Code Extension für Syntax Highlighting.
 
 ---
 
@@ -51,10 +51,10 @@ Features:
 Das Projekt vereint fundamentale Compiler-Konzepte in einer greifbaren Anwendung:
 
 -   **Sprachdesign**: Wie entwerfe ich eine DSL, die ausdrucksstark aber nicht überladen ist?
--   **Parsing**: ANTLR 4 Grammar mit Left-Recursion, Token-Precedence, Ambiguity-Resolution
--   **Semantic Analysis**: Referenz-Validierung (existiert `locked_by: golden_key`?), Typ-Checking (Health > 0?)
--   **IR Design**: Intermediate Representation zwischen Parse-Tree und Runtime-Objekten
--   **Error Recovery**: Präzise Fehlermeldungen mit Zeilennummern und Context
+-   **Parsing**: ANTLR 4 Grammar mit Left-Recursion, Token-Precedence, Ambiguity-Resolution.
+-   **Semantic Analysis**: Referenz-Validierung (existiert `locked_by: golden_key`?), Typ-Checking (Health > 0?).
+-   **IR Design**: Intermediate Representation zwischen Parse-Tree und Runtime-Objekten.
+-   **Error Recovery**: Präzise Fehlermeldungen mit Zeilennummern und Context.
 
 ## 3. Umsetzung: Wie werden wir das implementieren?
 
@@ -63,9 +63,9 @@ Implementierung eines VisitorPatterns mittels ANTLR zur Verarbeitung der DSL-Ein
 
 **Deliverables**:
 
--   Vollständiger Grammatik definiert durch ANTLR
+-   Vollständiger Grammatik definiert durch ANTLR.
 -   Funktionierende Spielbare Level basierend auf DSL und den Dungeon Code.
--   1-2 Beispiel DSL-Dateien für verschiedene Level
+-   1-2 Beispiel DSL-Dateien für verschiedene Level.
 
 ---
 
@@ -74,16 +74,16 @@ Implementierung eines VisitorPatterns mittels ANTLR zur Verarbeitung der DSL-Ein
 Grob definierte Ziele:
 
 -   Wir haben das Aussehen unserer DSL definiert.
--   Wir können einfache quadratische Räume ohne jeglichen Entities erzeugen
--   Wir können durch die DSL Spieler Character, NPCs, Hostile Mobs sowie Items ins Spiel bringen
+-   Wir können einfache quadratische Räume ohne jeglichen Entities erzeugen.
+-   Wir können durch die DSL Spieler Character, NPCs, Hostile Mobs sowie Items ins Spiel bringen.
 -   Wir können durch unsere DSL mehrere Räume definieren, sowie deren Nachbar Räume und generieren diese wie definiert.
--   Durch die DSL können wir Rätsel oder Quizzes definieren die wir dann z.B durch NPC ins Spiel bringen
--   Der Spieler kann durch Quizzes Items erlangen wie z.B Schlüssel durch die er in vorher gesperrte Bereiche erreichen kann
+-   Durch die DSL können wir Rätsel oder Quizzes definieren die wir dann z.B durch NPC ins Spiel bringen.
+-   Der Spieler kann durch Quizzes Items erlangen wie z.B Schlüssel durch die er in vorher gesperrte Bereiche erreichen kann.
 
 ## 5. Risiken und Mitigationsstrategien
 
--   Lesen und verstehen des Dungeon Codes führt zu verspäteten oder gar nicht machbaren Features
+-   Lesen und verstehen des Dungeon Codes führt zu verspäteten oder gar nicht machbaren Features.
 
--   Team Member springt ab
+-   Team Member springt ab.
 
--   Machbarkeit stark überschätzt
+-   Machbarkeit stark überschätzt.
