@@ -1,7 +1,27 @@
 package starter;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.logging.Logger;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+
 import contrib.entities.HeroFactory;
-import contrib.systems.*;
+import contrib.systems.AISystem;
+import contrib.systems.CollisionSystem;
+import contrib.systems.FogSystem;
+import contrib.systems.HealthBarSystem;
+import contrib.systems.HealthSystem;
+import contrib.systems.HudSystem;
+import contrib.systems.ManaBarSystem;
+import contrib.systems.ManaRestoreSystem;
+import contrib.systems.PathSystem;
+import contrib.systems.ProjectileSystem;
+import contrib.systems.StaminaBarSystem;
+import contrib.systems.StaminaRestoreSystem;
 import contrib.utils.components.Debugger;
 import core.Entity;
 import core.Game;
@@ -9,21 +29,12 @@ import core.level.DungeonLevel;
 import core.systems.InputSystem;
 import core.utils.Point;
 import core.utils.logging.CustomLogLevel;
+import dsl.DSLLevelLoader;
 import dsl.EscapeRoomDefinition;
 import dsl.EscapeRoomVisitor;
-import dsl.DSLLevelLoader;
-import dsl.DSLEntitySpawner;
 import dsl.parser.EscapeRoomDSLLexer;
 import dsl.parser.EscapeRoomDSLParser;
-import dsl.validation.EscapeRoomValidator;
-import dsl.validation.ValidationResult;
-import dsl.validation.ValidationError;
-import dsl.validation.ValidationWarning;
-import org.antlr.v4.runtime.*;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.logging.Logger;
+import dsl.utils.PositionUtils;
 
 /**
  * Starter for running a DSL-defined escape room.
@@ -72,42 +83,6 @@ public class DSLEscapeRoom {
         // Interpret using Visitor pattern (cleaner and more maintainable)
         EscapeRoomDefinition definition = EscapeRoomVisitor.interpret(tree);
 
-        // Validate the definition
-        LOGGER.info("\n=== Validating DSL Definition ===");
-        EscapeRoomValidator validator = new EscapeRoomValidator();
-        ValidationResult result = validator.validate(definition);
-
-        // Log errors
-        if (!result.getErrors().isEmpty()) {
-            System.err.println("\n=== VALIDATION ERRORS ===");
-            LOGGER.severe("Found " + result.getErrors().size() + " validation errors:");
-            for (ValidationError error : result.getErrors()) {
-                String errorMsg = "  [" + error.getType() + "] " + error.getMessage();
-                System.err.println(errorMsg);
-                LOGGER.severe(errorMsg);
-            }
-        }
-
-        // Log warnings
-        if (!result.getWarnings().isEmpty()) {
-            System.err.println("\n=== VALIDATION WARNINGS ===");
-            LOGGER.warning("Found " + result.getWarnings().size() + " validation warnings:");
-            for (ValidationWarning warning : result.getWarnings()) {
-                String warnMsg = "  [" + warning.getType() + "] " + warning.getMessage();
-                System.err.println(warnMsg);
-                LOGGER.warning(warnMsg);
-            }
-        }
-
-        // If validation failed, throw exception
-        if (!result.isValid()) {
-            System.err.println("\n=== VALIDATION FAILED ===");
-            throw new RuntimeException(
-                    "DSL validation failed with " + result.getErrors().size() + " errors. See errors above.");
-        }
-
-        LOGGER.info("Validation passed ✓");
-        LOGGER.info("Parsed: " + definition);
         return definition;
     }
 
@@ -175,7 +150,7 @@ public class DSLEscapeRoom {
                 boolean useDSLPosition = definition.player != null && definition.player.startX != null
                         && definition.player.startY != null;
                 Point heroPosition = useDSLPosition ? new Point(definition.player.startX, definition.player.startY)
-                        : DSLEntitySpawner.getRandomFloorPosition();
+                        : PositionUtils.getRandomFloorPosition();
                 if (useDSLPosition) {
                     LOGGER.info("Starting position from DSL: (" + definition.player.startX + ", "
                             + definition.player.startY + ")");
@@ -191,8 +166,6 @@ public class DSLEscapeRoom {
                 LOGGER.severe("Failed to create hero: " + e.getMessage());
             }
 
-            // Spawn items, NPCs, and monsters from DSL
-            DSLEntitySpawner.spawnEntities(definition);
 
             // Apply camera zoom if specified
             if (definition.getCameraZoom() != 1.0f) {

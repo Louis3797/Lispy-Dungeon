@@ -8,9 +8,6 @@ import java.util.Map;
 public class EscapeRoomDefinition {
     public Metadata metadata;
     public Map<String, Room> rooms;
-    public Map<String, Quiz> quizzes;
-    public Map<String, Item> items;
-    public Map<String, NPC> npcs;
     public Player player;
 
     /**
@@ -46,9 +43,6 @@ public class EscapeRoomDefinition {
         return "EscapeRoomDefinition{" +
                 "metadata=" + metadata +
                 ", rooms=" + (rooms != null ? rooms.size() : 0) +
-                ", quizzes=" + (quizzes != null ? quizzes.size() : 0) +
-                ", items=" + (items != null ? items.size() : 0) +
-                ", npcs=" + (npcs != null ? npcs.size() : 0) +
                 '}';
     }
 }

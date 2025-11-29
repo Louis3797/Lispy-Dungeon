@@ -1,18 +1,18 @@
 package starter;
 
-import dsl.parser.EscapeRoomDSLLexer;
-import dsl.parser.EscapeRoomDSLParser;
-
-import org.antlr.v4.runtime.*;
-
-import core.Game;
-import core.utils.logging.CustomLogLevel;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+
+import core.Game;
+import core.utils.logging.CustomLogLevel;
+import dsl.parser.EscapeRoomDSLLexer;
+import dsl.parser.EscapeRoomDSLParser;
 
 /**
  * Main class to parse and run the Escape Room DSL.

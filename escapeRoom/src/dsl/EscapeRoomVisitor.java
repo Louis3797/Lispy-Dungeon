@@ -1,10 +1,13 @@
 package dsl;
 
-import dsl.parser.*;
-import core.utils.logging.CustomLogLevel;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
+
+import core.utils.logging.CustomLogLevel;
+import dsl.parser.EscapeRoomDSLBaseVisitor;
+import dsl.parser.EscapeRoomDSLParser;
 
 /**
  * Visitor-based interpreter for the Escape Room DSL.
@@ -108,15 +111,9 @@ public class EscapeRoomVisitor extends EscapeRoomDSLBaseVisitor<Void> {
                 }
                 room.pattern = pattern;
                 LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Room has custom pattern (ASCII art)");
-            } else if (propCtx.room_items_property() != null) {
-                room.items = parseArray(propCtx.room_items_property().array());
-                LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Room items=" + room.items);
-            } else if (propCtx.room_connections_property() != null) {
+            }  else if (propCtx.room_connections_property() != null) {
                 room.connections = parseArray(propCtx.room_connections_property().array());
                 LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Room connections=" + room.connections);
-            } else if (propCtx.room_locked_by_property() != null) {
-                room.lockedBy = propCtx.room_locked_by_property().ID().getText();
-                LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Room locked_by=" + room.lockedBy);
             }
         }
 
@@ -130,93 +127,6 @@ public class EscapeRoomVisitor extends EscapeRoomDSLBaseVisitor<Void> {
         return null;
     }
 
-    @Override
-    public Void visitItems(EscapeRoomDSLParser.ItemsContext ctx) {
-        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Visiting items section");
-        if (definition.items == null) {
-            definition.items = new HashMap<>();
-        }
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public Void visitItem(EscapeRoomDSLParser.ItemContext ctx) {
-        Item item = new Item();
-
-        if (ctx.ID() != null) {
-            String itemId = ctx.ID().getText();
-            definition.items.put(itemId, item);
-            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found item: " + itemId);
-
-            // Visit all item properties
-            for (var propCtx : ctx.item_property()) {
-                visitItem_property_internal(propCtx, item);
-            }
-        }
-
-        return null;
-    }
-
-    private void visitItem_property_internal(EscapeRoomDSLParser.Item_propertyContext ctx, Item item) {
-        if (ctx.item_description_property() != null) {
-            item.description = unquote(ctx.item_description_property().STRING().getText());
-        } else if (ctx.item_type_property() != null) {
-            item.type = unquote(ctx.item_type_property().STRING().getText());
-        } else if (ctx.item_texture_property() != null) {
-            item.texture = unquote(ctx.item_texture_property().STRING().getText());
-        } else if (ctx.item_visible_property() != null) {
-            item.visible = Boolean.parseBoolean(ctx.item_visible_property().BOOLEAN().getText());
-        } else if (ctx.item_readable_property() != null) {
-            item.readable = Boolean.parseBoolean(ctx.item_readable_property().BOOLEAN().getText());
-        } else if (ctx.item_content_property() != null) {
-            item.content = unquote(ctx.item_content_property().STRING().getText());
-        }
-    }
-
-    @Override
-    public Void visitNpcs(EscapeRoomDSLParser.NpcsContext ctx) {
-        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Visiting npcs section");
-        if (definition.npcs == null) {
-            definition.npcs = new HashMap<>();
-        }
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public Void visitNpc(EscapeRoomDSLParser.NpcContext ctx) {
-        NPC npc = new NPC();
-
-        if (ctx.ID() != null) {
-            String npcId = ctx.ID().getText();
-            definition.npcs.put(npcId, npc);
-            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found npc: " + npcId);
-
-            // Visit all npc properties
-            for (var propCtx : ctx.npc_property()) {
-                visitNpc_property_internal(propCtx, npc);
-            }
-        }
-
-        return null;
-    }
-
-    private void visitNpc_property_internal(EscapeRoomDSLParser.Npc_propertyContext ctx, NPC npc) {
-        if (ctx.npc_description_property() != null) {
-            npc.description = unquote(ctx.npc_description_property().STRING().getText());
-        } else if (ctx.npc_texture_property() != null) {
-            npc.texture = unquote(ctx.npc_texture_property().STRING().getText());
-        } else if (ctx.npc_location_property() != null) {
-            npc.location = ctx.npc_location_property().ID().getText();
-        } else if (ctx.npc_hostile_property() != null) {
-            npc.hostile = Boolean.parseBoolean(ctx.npc_hostile_property().BOOLEAN().getText());
-        } else if (ctx.npc_health_property() != null) {
-            npc.health = parseIntOrDefault(ctx.npc_health_property().INT().getText(), 0);
-        } else if (ctx.npc_damage_property() != null) {
-            npc.damage = parseIntOrDefault(ctx.npc_damage_property().INT().getText(), 0);
-        } else if (ctx.npc_dialogue_property() != null) {
-            npc.dialogue = parseDialogue(ctx.npc_dialogue_property().dialogue());
-        }
-    }
 
     @Override
     public Void visitPlayer(EscapeRoomDSLParser.PlayerContext ctx) {
@@ -253,51 +163,6 @@ public class EscapeRoomVisitor extends EscapeRoomDSLBaseVisitor<Void> {
         return null;
     }
 
-    @Override
-    public Void visitQuizzes(EscapeRoomDSLParser.QuizzesContext ctx) {
-        LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Visiting quizzes section");
-        if (definition.quizzes == null) {
-            definition.quizzes = new HashMap<>();
-        }
-        return visitChildren(ctx);
-    }
-
-    @Override
-    public Void visitQuiz(EscapeRoomDSLParser.QuizContext ctx) {
-        Quiz quiz = new Quiz();
-
-        if (ctx.ID() != null) {
-            String quizId = ctx.ID().getText();
-            definition.quizzes.put(quizId, quiz);
-            LOGGER.log(CustomLogLevel.DEBUG, "DEBUG: Found quiz: " + quizId);
-
-            // Visit all quiz properties
-            for (var propCtx : ctx.quiz_property()) {
-                visitQuiz_property_internal(propCtx, quiz);
-            }
-        }
-
-        return null;
-    }
-
-    private void visitQuiz_property_internal(EscapeRoomDSLParser.Quiz_propertyContext ctx, Quiz quiz) {
-        if (ctx.quiz_type_property() != null) {
-            quiz.type = ctx.quiz_type_property().QUIZ_TYPE().getText();
-        } else if (ctx.quiz_question_property() != null) {
-            quiz.question = unquote(ctx.quiz_question_property().STRING().getText());
-        } else if (ctx.quiz_answers_property() != null) {
-            quiz.answers = parseArray(ctx.quiz_answers_property().array());
-        } else if (ctx.quiz_correct_answers_property() != null) {
-            quiz.correctAnswers = parseIntArray(ctx.quiz_correct_answers_property().array());
-        } else if (ctx.quiz_explanation_property() != null) {
-            quiz.explanation = unquote(ctx.quiz_explanation_property().STRING().getText());
-        } else if (ctx.quiz_reward_property() != null) {
-            quiz.reward = ctx.quiz_reward_property().ID().getText();
-        } else if (ctx.quiz_attached_to_property() != null) {
-            quiz.attachedTo = ctx.quiz_attached_to_property().ID().getText();
-        }
-    }
-
     /**
      * Parse an array of strings.
      */
@@ -310,56 +175,14 @@ public class EscapeRoomVisitor extends EscapeRoomDSLBaseVisitor<Void> {
                     result.add(value);
                 } else if (valueCtx.ID() != null) {
                     result.add(valueCtx.ID().getText());
-                } else if (valueCtx.ITEM_TYPE() != null) {
-                    result.add(valueCtx.ITEM_TYPE().getText());
                 }
             }
         }
         return result;
     }
 
-    /**
-     * Parse an array of integers (e.g., for correct answer indices).
-     */
-    private List<Integer> parseIntArray(EscapeRoomDSLParser.ArrayContext ctx) {
-        List<Integer> result = new ArrayList<>();
-        if (ctx != null && ctx.value() != null) {
-            for (EscapeRoomDSLParser.ValueContext valueCtx : ctx.value()) {
-                if (valueCtx.INT() != null) {
-                    result.add(Integer.parseInt(valueCtx.INT().getText()));
-                }
-            }
-        }
-        return result;
-    }
 
-    /**
-     * Parse dialogue map from dialogue context.
-     */
-    private Map<String, String> parseDialogue(EscapeRoomDSLParser.DialogueContext ctx) {
-        Map<String, String> result = new HashMap<>();
-        if (ctx != null && ctx.dialogue_property() != null) {
-            for (EscapeRoomDSLParser.Dialogue_propertyContext propCtx : ctx.dialogue_property()) {
-                if (propCtx.STRING() != null) {
-                    String text = propCtx.getText();
-                    String value = unquote(propCtx.STRING().getText());
 
-                    if (text.startsWith("default_text:") || text.startsWith("default:")) {
-                        result.put("default", value);
-                    }
-                } else if (propCtx.dialogue_conditions() != null) {
-                    // Parse conditional dialogue
-                    for (EscapeRoomDSLParser.Dialogue_conditionContext condCtx : propCtx.dialogue_conditions()
-                            .dialogue_condition()) {
-                        String key = condCtx.ID().getText();
-                        String value = unquote(condCtx.STRING().getText());
-                        result.put(key, value);
-                    }
-                }
-            }
-        }
-        return result;
-    }
 
     // Utility methods for cleaner parsing
 
