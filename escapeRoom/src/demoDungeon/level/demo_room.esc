@@ -1,612 +1,76 @@
 escape_room:
 
     metadata:
-        title: "The Cursed Fortress"
-        description: "A massive dungeon filled with dangers, puzzles, and treasures. Navigate through fog, battle monsters, and solve riddles to escape!"
-        difficulty: "extreme"
+        title: "Simple Dungeon"
+        description: "A basic dungeon with connected rooms"
         fog_of_war: false
-        max_time: 60
-        view_distance: 6
+        max_time: 30
+        view_distance: 8
         camera_zoom: 1.0
 
     rooms:
-        entrance_hall:
-            description: "A grand entrance hall with high ceilings and flickering torches"
+        entrance:
+            description: "The entrance hall of the dungeon"
             x: 0
+            y: 0
+            width: 10
+            height: 10
+            connections: [corridor, treasure_room]
+
+        corridor:
+            description: "A long dark corridor"
+            x: 15
+            y: 0
+            width: 20
+            height: 8
+            pattern: """
+####################
+#......######......#
+#......######......#
+#......######......#
+#......######......#
+#..................#
+#..................#
+####################
+"""
+            connections: [entrance, boss_room]
+
+        treasure_room:
+            description: "A room filled with treasures"
+            x: 0
+            y: 15
+            width: 12
+            height: 12
+            connections: [entrance]
+
+        boss_room:
+            description: "The final boss chamber"
+            x: 40
             y: 0
             width: 15
             height: 15
-            connections: [armory, library, dark_corridor]
-      
-        armory:
-            description: "An old armory filled with rusted weapons and armor"
-            x: 20
-            y: 0
-            width: 12
-            height: 10
-            connections: [entrance_hall, training_grounds]
-
-
-        training_grounds:
-            description: "An ancient training area with practice dummies and targets"
-            x: 40
-            y: 0
             pattern: """
-##########
-#........#
-#..####..#
-#..#  #..#
-#..#  #..#
-#..####..#
-#........#
-##########
+###############
+#.............#
+#.............#
+#.............#
+#......#......#
+#.....###.....#
+#......#......#
+#.............#
+#.............#
+#.............#
+###############
 """
-            connections: [armory, treasure_vault]
-
-        treasure_vault:
-            description: "A heavily guarded treasure vault with golden walls"
-            x: 60
-            y: 0
-            width: 10
-            height: 10
-            connections: [training_grounds, ritual_chamber]
-            locked_by: golden_key
-
-        library:
-            description: "A dusty library filled with ancient tomes and scrolls"
-            x: 0
-            y: 20
-            width: 14
-            height: 12
-            connections: [entrance_hall, ritual_chamber]
-            locked_by: silver_key
-
-        ritual_chamber:
-            description: "A mysterious chamber with arcane symbols on the floor"
-            x: 40
-            y: 20
-            pattern: """
-############
-#..........#
-#..######..#
-#..#    #..#
-#..#    #..#
-#..#    #..#
-#..######..#
-#..........#
-############
-"""
-            connections: [library, treasure_vault, catacombs]
-            locked_by: crystal_key
-
-        catacombs:
-            description: "Dark catacombs filled with the restless dead"
-            x: 0
-            y: 40
-            width: 16
-            height: 14
-            connections: [ritual_chamber, boss_arena]
-            locked_by: tomb_key
-
-        boss_arena:
-            description: "A massive arena where the final battle awaits"
-            x: 30
-            y: 40
-            width: 20
-            height: 20
-            connections: [catacombs, spider_nest, poison_chamber, exit_portal]
-            locked_by: ruby_key
-
-        dark_corridor:
-            description: "A pitch-black corridor where you can barely see ahead"
-            x: -20
-            y: 0
-            width: 8
-            height: 20
-            connections: [entrance_hall, spider_nest]
-
-        spider_nest:
-            description: "A web-filled nest of giant spiders"
-            x: -20
-            y: 30
-            width: 12
-            height: 12
-            connections: [dark_corridor, boss_arena, secret_vault]
-            locked_by: spider_key
-
-        poison_chamber:
-            description: "A chamber filled with toxic fumes and dangerous creatures"
-            x: 60
-            y: 40
-            width: 10
-            height: 10
-            connections: [boss_arena]
-            locked_by: emerald_key
-
-        secret_vault:
-            description: "A hidden vault containing the most valuable treasures"
-            x: -20
-            y: 50
-            width: 8
-            height: 8
-            connections: [spider_nest]
-            locked_by: master_key
-
-        exit_portal:
-            description: "A magical portal leading to freedom"
-            x: 30
-            y: 70
-            width: 10
-            height: 10
-            connections: [boss_arena]
-
-    quizzes:
-        guardian_riddle:
-            type: single_choice
-            question: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?"
-            answers: [Echo, Shadow, Spirit, Wind]
-            correct_answers: [0]
-            reward: bronze_key
-            attached_to: old_guardian
-
-        keeper_challenge:
-            type: multiple_choice
-            question: "Which of these were medieval weapons?"
-            answers: [Sword, Rifle, Crossbow, Laser, Mace]
-            correct_answers: [0, 2, 4]
-            reward: silver_key
-            attached_to: armory_keeper
-
-        librarian_test:
-            type: single_choice
-            question: "What is the capital of France?"
-            answers: [London, Berlin, Paris, Madrid]
-            correct_answers: [2]
-            reward: library_key
-            attached_to: librarian
-
-        mage_quiz:
-            type: multiple_choice
-            question: "Select all primary elements in classical magic:"
-            answers: [Fire, Metal, Water, Earth, Air]
-            correct_answers: [0, 2, 3, 4]
-            reward: crystal_key
-            attached_to: dark_mage
-
-        golem_puzzle:
-            type: single_choice
-            question: "What has hands but cannot clap?"
-            answers: ["Clock", "Glove", "Letter M", "Statue"]
-            correct_answers: [0]
-            reward: emerald_key
-            attached_to: vault_golem
-
-        demon_challenge:
-            type: multiple_choice
-            question: "Which are functional programming paradigms?"
-            answers: ["Immutability", "Inheritance", "Pure Functions", "Polymorphism", "Higher-Order Functions"]
-            correct_answers: [0, 2, 4]
-            reward: master_key
-            attached_to: boss_demon
-
-    items:
-        bronze_key:
-            description: "A bronze key that opens the armory"
-            type: "key"
-            texture: "items/key/small_key.png"
-            visible: true
-
-        silver_key:
-            description: "A silver key that opens the library"
-            type: "key"
-            texture: "items/key/small_key.png"
-            visible: true
-
-        golden_key:
-            description: "A golden key that opens the treasure vault"
-            type: "key"
-            texture: "items/key/big_key.png"
-            visible: true
-
-        library_key:
-            description: "An ancient library key"
-            type: "key"
-            texture: "items/key/small_key.png"
-            visible: true
-
-        crystal_key:
-            description: "A magical crystal key that opens the ritual chamber"
-            type: "key"
-            texture: "items/key/big_key.png"
-            visible: true
-
-        tomb_key:
-            description: "A key carved from bone that opens the catacombs"
-            type: "key"
-            texture: "items/key/small_key.png"
-            visible: true
-
-        spider_key:
-            description: "A key covered in webbing that opens the spider nest"
-            type: "key"
-            texture: "items/key/small_key.png"
-            visible: true
-
-        emerald_key:
-            description: "An emerald key that opens the poison chamber"
-            type: "key"
-            texture: "items/key/red_key.png"
-            visible: true
-
-        ruby_key:
-            description: "A ruby key that opens the boss arena"
-            type: "key"
-            texture: "items/key/big_key.png"
-            visible: true
-
-        master_key:
-            description: "The master key that opens the secret vault"
-            type: "key"
-            texture: "items/key/blue_key.png"
-            visible: true
-
-        wisdom_scroll:
-            description: "An ancient scroll of wisdom"
-            type: "readable"
-            texture: "items/book/spell_book.png"
-            readable: true
-            content: "Only the brave and wise shall escape this cursed fortress..."
-
-        fire_scroll:
-            description: "A scroll containing fire magic"
-            type: "readable"
-            texture: "items/book/spell_book.png"
-            readable: true
-            content: "Ignis! The power of fire flows through you..."
-
-        health_potion:
-            description: "A red potion that restores health"
-            type: "consumable"
-            texture: "items/potion/health_potion.png"
-            visible: true
-
-        mana_potion:
-            description: "A blue potion that restores mana"
-            type: "consumable"
-            texture: "items/potion/mana_potion.png"
-            visible: true
-
-        legendary_sword:
-            description: "A legendary sword with immense power"
-            type: "weapon"
-            texture: "items/weapon/legendary_sword.png"
-            visible: true
-
-        wooden_bow:
-            description: "A powerful wooden bow"
-            type: "weapon"
-            texture: "items/weapon/wooden_bow.png"
-            visible: true
-
-        ancient_map:
-            description: "A map of the fortress"
-            type: "readable"
-            texture: "items/book/red_book.png"
-            readable: true
-            content: "The fortress layout shows 13 chambers connected by ancient passages..."
-
-    npcs:
-        old_guardian:
-            description: "An ancient guardian protecting the entrance"
-            texture: "character/monster/pumpkin_dude"
-            location: entrance_hall
-            hostile: false
-            dialogue:
-                default_text: "Solve my riddle to proceed, young traveler..."
-        
-        armory_keeper:
-            description: "The keeper of the armory"
-            texture: "character/monster/doc"
-            location: armory
-            hostile: false
-            dialogue:
-                default_text: "Test your knowledge of medieval warfare..."
-
-        librarian:
-            description: "The ancient librarian"
-            texture: "character/monster/necromancer"
-            location: library
-            hostile: false
-            dialogue:
-                default_text: "Knowledge is the key to progress..."
-
-        training_dummy:
-            description: "A magical training dummy"
-            texture: "character/monster/pumpkin_dude"
-            location: training_grounds
-            hostile: false
-            dialogue:
-                default_text: "Practice makes perfect!"
-
-        dark_mage:
-            description: "A mysterious dark mage"
-            texture: "character/monster/wizard"
-            location: ritual_chamber
-            hostile: false
-            dialogue:
-                default_text: "Prove your understanding of the elements..."
-
-        vault_golem:
-            description: "A stone golem guarding the vault"
-            texture: "character/monster/chort"
-            location: secret_vault
-            hostile: false
-            dialogue:
-                default_text: "Answer wisely or face my wrath..."
-
-        boss_demon:
-            description: "The demon lord of the fortress"
-            texture: "character/monster/big_demon"
-            location: boss_arena
-            hostile: false
-            dialogue:
-                default_text: "Your final challenge awaits... prove your intellect!"
-
-        skeleton_warrior_1:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: entrance_hall
-            hostile: true
-            health: 20
-            damage: 3
-
-        skeleton_warrior_2:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: armory
-            hostile: true
-            health: 20
-            damage: 3
-
-        skeleton_warrior_3:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: training_grounds
-            hostile: true
-            health: 20
-            damage: 3
-
-        skeleton_warrior_4:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: treasure_vault
-            hostile: true
-            health: 25
-            damage: 4
-
-        skeleton_warrior_5:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: catacombs
-            hostile: true
-            health: 30
-            damage: 5
-
-        skeleton_warrior_6:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: catacombs
-            hostile: true
-            health: 30
-            damage: 5
-
-        skeleton_warrior_7:
-            description: "An undead skeleton warrior"
-            texture: "character/monster/skelet"
-            location: boss_arena
-            hostile: true
-            health: 35
-            damage: 6
-
-        goblin_1:
-            description: "A sneaky goblin"
-            texture: "character/monster/goblin"
-            location: entrance_hall
-            hostile: true
-            health: 15
-            damage: 2
-
-        goblin_2:
-            description: "A sneaky goblin"
-            texture: "character/monster/goblin"
-            location: armory
-            hostile: true
-            health: 15
-            damage: 2
-
-        goblin_3:
-            description: "A sneaky goblin"
-            texture: "character/monster/goblin"
-            location: dark_corridor
-            hostile: true
-            health: 18
-            damage: 3
-
-        zombie_1:
-            description: "A shambling zombie"
-            texture: "character/monster/zombie"
-            location: library
-            hostile: true
-            health: 25
-            damage: 3
-
-        zombie_2:
-            description: "A shambling zombie"
-            texture: "character/monster/zombie"
-            location: catacombs
-            hostile: true
-            health: 30
-            damage: 4
-
-        ghost_1:
-            description: "A spectral ghost"
-            texture: "character/monster/ghost"
-            location: ritual_chamber
-            hostile: true
-            health: 20
-            damage: 4
-
-        ghost_2:
-            description: "A spectral ghost"
-            texture: "character/monster/ghost"
-            location: dark_corridor
-            hostile: true
-            health: 20
-            damage: 4
-
-        imp_1:
-            description: "A mischievous imp"
-            texture: "character/monster/imp"
-            location: treasure_vault
-            hostile: true
-            health: 12
-            damage: 2
-
-        imp_2:
-            description: "A mischievous imp"
-            texture: "character/monster/imp"
-            location: ritual_chamber
-            hostile: true
-            health: 12
-            damage: 2
-
-        imp_3:
-            description: "A mischievous imp"
-            texture: "character/monster/imp"
-            location: boss_arena
-            hostile: true
-            health: 15
-            damage: 3
-
-        bat_1:
-            description: "A vicious bat"
-            texture: "character/monster/bat"
-            location: dark_corridor
-            hostile: true
-            health: 8
-            damage: 1
-
-        bat_2:
-            description: "A vicious bat"
-            texture: "character/monster/bat"
-            location: dark_corridor
-            hostile: true
-            health: 8
-            damage: 1
-
-        shadow_creature:
-            description: "A creature made of pure shadow"
-            texture: "character/monster/shadow"
-            location: dark_corridor
-            hostile: true
-            health: 40
-            damage: 7
-
-        spider_1:
-            description: "A giant spider"
-            texture: "character/monster/spider"
-            location: spider_nest
-            hostile: true
-            health: 25
-            damage: 4
-
-        spider_2:
-            description: "A giant spider"
-            texture: "character/monster/spider"
-            location: spider_nest
-            hostile: true
-            health: 25
-            damage: 4
-
-        spider_3:
-            description: "A giant spider queen"
-            texture: "character/monster/spider"
-            location: spider_nest
-            hostile: true
-            health: 40
-            damage: 6
-
-        slime_1:
-            description: "A toxic slime"
-            texture: "character/monster/slime"
-            location: poison_chamber
-            hostile: true
-            health: 20
-            damage: 3
-
-        slime_2:
-            description: "A toxic slime"
-            texture: "character/monster/slime"
-            location: poison_chamber
-            hostile: true
-            health: 20
-            damage: 3
-
-        vault_guardian:
-            description: "The ultimate guardian of the vault"
-            texture: "character/monster/chort"
-            location: secret_vault
-            hostile: true
-            health: 50
-            damage: 8
-
-        orc_brute:
-            description: "A massive orc brute"
-            texture: "character/monster/orc_warrior"
-            location: training_grounds
-            hostile: true
-            health: 35
-            damage: 5
-
-        necromancer:
-            description: "An evil necromancer"
-            texture: "character/monster/necromancer"
-            location: catacombs
-            hostile: true
-            health: 30
-            damage: 6
-
-        demon_guard_1:
-            description: "A demon guard"
-            texture: "character/monster/demon"
-            location: boss_arena
-            hostile: true
-            health: 45
-            damage: 7
-
-        demon_guard_2:
-            description: "A demon guard"
-            texture: "character/monster/demon"
-            location: boss_arena
-            hostile: true
-            health: 45
-            damage: 7
-
-        poison_drake:
-            description: "A poisonous drake"
-            texture: "character/monster/dragon"
-            location: poison_chamber
-            hostile: true
-            health: 60
-            damage: 9
+            connections: [corridor]
 
     player:
         class: wizard
         start_x: 5
         start_y: 5
-        health: 75
-        mana: 180
+        health: 100
+        mana: 150
         stamina: 100
-        speed: 6.5
-        mana_restore: 3.5
-        stamina_restore: 2.0
+        speed: 5.0
+        mana_restore: 2.5
+        stamina_restore: 1.5

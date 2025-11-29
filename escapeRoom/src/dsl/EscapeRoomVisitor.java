@@ -44,8 +44,6 @@ public class EscapeRoomVisitor extends EscapeRoomDSLBaseVisitor<Void> {
                 definition.metadata.title = unquote(propCtx.title_property().STRING().getText());
             } else if (propCtx.description_property() != null) {
                 definition.metadata.description = unquote(propCtx.description_property().STRING().getText());
-            } else if (propCtx.difficulty_property() != null) {
-                definition.metadata.difficulty = unquote(propCtx.difficulty_property().STRING().getText());
             } else if (propCtx.max_time_property() != null) {
                 definition.metadata.maxTime = parseIntOrDefault(propCtx.max_time_property().INT().getText(), 0);
             } else if (propCtx.fog_of_war_property() != null) {

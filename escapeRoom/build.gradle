@@ -51,13 +51,10 @@ tasks.register('runDSLParser', JavaExec) {
     mainClass = 'starter.DSLParserMain'
     classpath = sourceSets.main.runtimeClasspath
     args = ['escapeRoom/src/demoDungeon/level/demo_room.esc']
+    standardOutput = System.out 
+    errorOutput = System.err    
 }
 
-tasks.register('runDSLEscapeRoom', JavaExec) {
-    group 'starter'
-    mainClass = 'starter.DSLEscapeRoom'
-    classpath = sourceSets.main.runtimeClasspath
-}
 
 processResources {
     from new File(project(':dungeon').projectDir, '/assets')

@@ -47,9 +47,9 @@ public class DSLParserMain {
         EscapeRoomDSLParser.StartContext tree = parser.start();
 
         // Print the parse tree (for debugging)
-        LOGGER.info("=== Parse Tree ===");
-        LOGGER.info(tree.toStringTree(parser));
+       System.out.println("=== Parse Tree ===");
+        System.out.println(tree.toStringTree(parser));
 
-        LOGGER.info("DSL parsing and interpretation complete!");
+        System.out.println("DSL parsing and interpretation complete!");
     }
 }

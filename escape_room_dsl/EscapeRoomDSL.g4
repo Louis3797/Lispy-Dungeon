@@ -9,7 +9,6 @@ metadata: 'metadata:' metadata_property*;
 metadata_property:
 	title_property
 	| description_property
-	| difficulty_property
 	| max_time_property
 	| fog_of_war_property
 	| view_distance_property
@@ -17,7 +16,6 @@ metadata_property:
 
 title_property: 'title:' STRING;
 description_property: 'description:' STRING;
-difficulty_property: 'difficulty:' STRING;
 max_time_property: 'max_time:' INT;
 fog_of_war_property: 'fog_of_war:' BOOLEAN;
 view_distance_property: 'view_distance:' INT;
