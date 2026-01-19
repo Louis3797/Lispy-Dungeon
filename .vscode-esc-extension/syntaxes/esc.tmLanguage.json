@@ -1,0 +1,119 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Escape Room DSL",
+    "scopeName": "source.esc",
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#keywords" },
+        { "include": "#section-headers" },
+        { "include": "#properties" },
+        { "include": "#strings" },
+        { "include": "#multiline-strings" },
+        { "include": "#numbers" },
+        { "include": "#booleans" },
+        { "include": "#arrays" },
+        { "include": "#identifiers" }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.esc",
+                    "match": "//.*$"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.esc",
+                    "match": "\\b(escape_room)\\b"
+                }
+            ]
+        },
+        "section-headers": {
+            "patterns": [
+                {
+                    "name": "entity.name.type.esc",
+                    "match": "\\b(metadata|rooms|items|npcs|quizzes|player|dialogue|conditions):"
+                }
+            ]
+        },
+        "properties": {
+            "patterns": [
+                {
+                    "name": "variable.parameter.esc",
+                    "match": "\\b(title|description|difficulty|max_time|fog_of_war|view_distance|camera_zoom|x|y|width|height|pattern|connections|items|locked_by|type|texture|visible|readable|content|location|hostile|health|damage|default_text|default|question|answers|correct_answers|explanation|reward|attached_to|class|start_x|start_y|mana|stamina|speed|mana_restore|stamina_restore):"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.esc",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.esc",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "multiline-strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.triple.esc",
+                    "begin": "\"\"\"",
+                    "end": "\"\"\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.pattern.esc",
+                            "match": "[#.D ]"
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.esc",
+                    "match": "\\b-?[0-9]+(\\.[0-9]+)?\\b"
+                }
+            ]
+        },
+        "booleans": {
+            "patterns": [
+                {
+                    "name": "constant.language.boolean.esc",
+                    "match": "\\b(true|false)\\b"
+                }
+            ]
+        },
+        "arrays": {
+            "patterns": [
+                {
+                    "name": "meta.array.esc",
+                    "begin": "\\[",
+                    "end": "\\]",
+                    "patterns": [
+                        { "include": "#strings" },
+                        { "include": "#numbers" },
+                        { "include": "#identifiers" }
+                    ]
+                }
+            ]
+        },
+        "identifiers": {
+            "patterns": [
+                {
+                    "name": "variable.other.esc",
+                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                }
+            ]
+        }
+    }
+}

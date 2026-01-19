@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+}
+
+
+dependencies {
+    api project(':dungeon')
+}
+
+
+sourceSets.main.java.srcDirs = ['src/']
+sourceSets.main.resources.srcDirs = ['assets/']
+
+tasks.register('runDevDungeon', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DevDungeon'
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+}
+
+processResources {
+    from new File(project(':dungeon').projectDir, '/assets')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

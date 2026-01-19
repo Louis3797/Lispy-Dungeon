@@ -1,0 +1,61 @@
+buildscript {
+    apply from: 'dependencies.gradle'
+}
+
+
+plugins {
+    id 'com.diffplug.spotless' version "${spotlessVersion}"
+}
+
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        sourceCompatibility = JavaVersion.toVersion(21)
+        targetCompatibility = JavaVersion.toVersion(21)
+    }
+
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.withType(JavaExec).configureEach {
+        dependsOn classes
+        standardInput = System.in
+        ignoreExitValue true
+        workingDir = rootProject.projectDir
+        systemProperty 'BASELOGDIR', project.baseLogDir
+        systemProperty 'BASEREFLECTIONDIR', project.baseReflectionDir
+    }
+
+    clean {
+        delete project.baseLogDir
+    }
+
+    checkstyle {
+        configFile = rootProject.file('.checkstyle.xml')
+        // Default version vs. current version? The default version is quite old (9.3 from
+        // Jan 30, 2022), so let's go with the current version (10.17).
+        // However, this needs to be updated manually as Dependabot won't deal with this!
+        toolVersion = '10.26.0'
+        ignoreFailures = false
+        maxWarnings = 0
+    }
+}
+
+
+spotless {
+    java {
+        targetExclude('build/generated-src/**')
+        googleJavaFormat()
+
+        target '**/*.java'
+    }
+}

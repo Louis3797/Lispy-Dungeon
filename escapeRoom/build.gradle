@@ -1,0 +1,101 @@
+plugins {
+    id 'java-library'
+    id 'antlr'
+}
+
+
+dependencies {
+    api project(':dungeon')
+
+    // ANTLR for DSL parsing
+    antlr supportDependencies.antlr
+
+    // JUnit and Mockito for testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation supportDependencies.mockito_core
+    testRuntimeOnly supportDependencies.antlr
+}
+
+
+test {
+    useJUnitPlatform()
+}
+
+sourceSets.main.java.srcDirs = ['src/', 'build/generated-src/antlr/main']
+sourceSets.main.resources.srcDirs = ['assets/']
+sourceSets.test.java.srcDirs = ['test/']
+sourceSets.test.resources.srcDirs = ['test_assets/']
+
+// ANTLR configuration
+sourceSets.main.antlr.srcDirs = ['../escape_room_dsl/']
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ['-package', 'dsl.parser', '-visitor', '-listener']
+    outputDirectory = file("build/generated-src/antlr/main/dsl/parser")
+}
+
+tasks.register('runCoopDungeon', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.CoopDungeon'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+tasks.register('runDemoRoom', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DemoRoom'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+tasks.register('runDSLParser', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DSLParserMain'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['escapeRoom/src/demoDungeon/level/demo_room.esc']
+}
+
+tasks.register('runDSLEscapeRoom', JavaExec) {
+    group 'starter'
+    mainClass = 'starter.DSLEscapeRoom'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+processResources {
+    from new File(project(':dungeon').projectDir, '/assets')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+tasks.register('buildDemoRoom', Jar) {
+    group = 'jar'
+    archiveBaseName.set('EscaperoomDemo')
+    archiveFileName.set('EscapeRoomDemo.jar')
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // include compiled classes
+    from sourceSets.main.output
+    from project(':dungeon').sourceSets.main.output
+
+    // include dependencies
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    // include assets
+    into('assets') {
+        from new File(project(':dungeon').projectDir, '/assets')
+    }
+
+    // manifest
+    manifest {
+        attributes(
+                'Main-Class': 'starter.DemoRoom'
+        )
+    }
+
+    // exclude signature files
+    exclude('META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
+}

@@ -1,0 +1,1088 @@
+# =============================================================================
+# COMPLETE DSL SHOWCASE
+# Demonstrates ALL implemented features: Variables, Expressions, Conditionals,
+# Loops, Event Handlers, Triggers, and all entity types
+# =============================================================================
+
+escape_room:
+
+    # =============================================================================
+    # METADATA - Game Configuration
+    # =============================================================================
+    metadata:
+        title: "The Complete DSL Adventure"
+        description: "A comprehensive showcase of all DSL capabilities"
+        difficulty: "medium"
+        fog_of_war: false
+        view_distance: 8
+        camera_zoom: 1.2
+        max_time: 900  # 15 minutes
+
+
+    # =============================================================================
+    # TIER 1: VARIABLES - Track game state
+    # =============================================================================
+    variables:
+        # Progress tracking
+        score: 0
+        keysCollected: 0
+        secretsFound: 0
+        puzzlesSolved: 0
+        enemiesDefeated: 0
+        
+        # Quest flags
+        talkedToMerchant: false
+        talkedToGuide: false
+        hasMapFragment1: false
+        hasMapFragment2: false
+        hasMapFragment3: false
+        mapComplete: false
+        
+        # Player stats tracking
+        goldSpent: 0
+        itemsUsed: 0
+        roomsVisited: 0
+        
+        # Computed values (expressions)
+        requiredKeys: 3
+        bonusThreshold: 100 * 5
+        difficultyMultiplier: 1.5
+        maxPossibleScore: 1000 + 500
+        treasureValue: 50 * 10
+        
+        # Dynamic values
+        merchantGoodwill: 0
+        alarmLevel: 0
+        timeBonus: 1000
+
+
+    # =============================================================================
+    # ROOMS - With event handlers and dynamic behavior
+    # =============================================================================
+    rooms:
+        entrance:
+            description: "A grand entrance hall with marble floors"
+            x: 0
+            y: 0
+            width: 12
+            height: 10
+            connections: ["main_hall", "guard_room"]
+            items: ["bronze_key", "health_potion"]
+            
+            on_enter {
+                roomsVisited += 1
+                score += 10
+                
+                # TIER 2: Conditional welcome messages
+                if (roomsVisited == 1) {
+                    show_message("Welcome to the Complete DSL Adventure!")
+                    show_message("Find " + requiredKeys + " keys to unlock the treasure room!")
+                } else {
+                    show_message("Welcome back to the entrance.")
+                }
+            }
+            
+            on_first_enter {
+                show_message("This is your first time here. Good luck!")
+                give_item("starter_torch")
+                give_item("wooden_sword")
+                score += 25
+            }
+    
+        main_hall:
+            description: "The central hub of the dungeon"
+            x: 14
+            y: 0
+            width: 15
+            height: 15
+            connections: ["entrance", "treasure_room", "puzzle_wing", "merchant_shop", "library"]
+            items: ["silver_key", "mana_potion"]
+            
+            on_enter {
+                roomsVisited += 1
+                
+                # TIER 2: Complex conditional logic
+                if (keysCollected == 0) {
+                    show_message("Find keys to unlock the treasure room!")
+                } else if (keysCollected < requiredKeys) {
+                    show_message("Keys collected: " + keysCollected + "/" + requiredKeys)
+                } else {
+                    show_message("You have all the keys! Head to the treasure room!")
+                }
+                
+                # Show current score
+                if (score >= bonusThreshold) {
+                    show_message("Excellent progress! Score: " + score)
+                } else {
+                    show_message("Keep exploring! Current score: " + score)
+                }
+            }
+            
+            on_first_enter {
+                show_message("This is the main hall. Many paths await you.")
+                score += 15
+            }
+    
+        treasure_room:
+            description: "A glittering chamber filled with gold and jewels"
+            x: 31
+            y: 0
+            width: 10
+            height: 10
+            connections: ["main_hall"]
+            locked_by: golden_key
+            items: ["treasure_chest", "master_potion"]
+            
+            on_enter {
+                show_message("You found the treasure room!")
+                
+                # TIER 2: Math expressions for dynamic rewards
+                score += treasureValue * difficultyMultiplier
+            }
+            
+            on_first_enter {
+                show_message("First time treasure bonus: +500 points!")
+                score += 500
+                secretsFound += 1
+                
+                # TIER 2: Loop to spawn multiple treasures
+                repeat 5 {
+                    print("Spawning treasure pile...")
+                }
+            }
+            
+            on_clear {
+                show_message("Treasure room cleared! Here's a bonus key!")
+                give_item("bonus_key")
+                score += 100
+            }
+    
+        puzzle_wing:
+            description: "A wing dedicated to ancient puzzles"
+            x: 14
+            y: 17
+            width: 12
+            height: 12
+            connections: ["main_hall", "secret_lab"]
+            items: ["golden_key", "ancient_scroll"]
+            
+            on_enter {
+                roomsVisited += 1
+                
+                if (puzzlesSolved == 0) {
+                    show_message("Test your mind in this puzzle wing!")
+                } else {
+                    show_message("Puzzles solved: " + puzzlesSolved)
+                }
+            }
+            
+            on_first_enter {
+                show_message("Ancient puzzles guard great secrets here...")
+                score += 20
+            }
+    
+        merchant_shop:
+            description: "A cozy shop with exotic items"
+            x: 31
+            y: 12
+            width: 8
+            height: 8
+            connections: ["main_hall"]
+            
+            on_enter {
+                if (!talkedToMerchant) {
+                    show_message("Welcome, traveler! Find all the keys to escape.")
+                } else if (merchantGoodwill >= 3) {
+                    show_message("Ah, my favorite customer!")
+                } else {
+                    show_message("Want to trade?")
+                }
+            }
+            
+            on_first_enter {
+                show_message("A mysterious merchant greets you warmly.")
+                talkedToMerchant = true
+                score += 10
+            }
+    
+        library:
+            description: "An ancient library with dusty tomes"
+            x: 31
+            y: 22
+            width: 10
+            height: 10
+            connections: ["main_hall"]
+            items: ["map_fragment_2", "ancient_tome"]
+            
+            on_first_enter {
+                show_message("You discover a vast ancient library!")
+                score += 30
+                secretsFound += 1
+            }
+            
+            on_enter {
+                if (!hasMapFragment1) {
+                    show_message("You feel like something important is hidden here...")
+                }
+            }
+    
+        secret_lab:
+            description: "A hidden alchemist's laboratory"
+            x: 28
+            y: 17
+            width: 8
+            height: 8
+            connections: ["puzzle_wing"]
+            locked_by: lab_key
+            
+            on_first_enter {
+                show_message("You discovered a secret laboratory!")
+                secretsFound += 1
+                score += 250
+                give_item("master_potion")
+            }
+    
+        guard_room:
+            description: "The guards quarters"
+            x: -12
+            y: 0
+            width: 10
+            height: 10
+            connections: ["entrance", "armory"]
+            items: ["health_potion", "armory_key"]
+            
+            on_enter {
+                alarmLevel += 1
+                
+                if (alarmLevel >= 3) {
+                    show_message("The guards are on high alert!")
+                } else {
+                    show_message("You enter the guard quarters carefully...")
+                }
+            }
+            
+            on_first_enter {
+                show_message("Be careful - guards patrol this area!")
+            }
+            
+            on_clear {
+                show_message("Guards defeated! The armory is now accessible.")
+                unlock("armory")
+                enemiesDefeated += 2
+                score += 80
+            }
+    
+        armory:
+            description: "A well-stocked weapons chamber"
+            x: -24
+            y: 0
+            width: 8
+            height: 8
+            connections: ["guard_room"]
+            locked_by: armory_key
+            items: ["steel_sword", "steel_shield", "final_door"]
+            
+            on_first_enter {
+                show_message("You found the armory! Powerful weapons await!")
+                give_item("steel_sword")
+                give_item("steel_shield")
+                score += 100
+                secretsFound += 1
+            }
+    
+        final_room:
+            description: "The escape portal chamber"
+            x: 0
+            y: 20
+            width: 10
+            height: 10
+            connections: ["entrance"]
+            locked_by: final_door
+            
+            on_enter {
+                # TIER 2: Complex victory condition
+                if (keysCollected >= requiredKeys && mapComplete) {
+                    show_message("Congratulations! You can escape!")
+                    show_message("Final Score: " + score)
+                    victory("You escaped!")
+                } else {
+                    show_message("You need all " + requiredKeys + " keys and the complete map to escape!")
+                }
+            }
+    
+        monster_arena:
+            description: "A dark arena filled with enemies"
+            x: -12
+            y: 12
+            width: 14
+            height: 14
+            connections: ["entrance"]
+            
+            on_first_enter {
+                show_message("You enter the monster arena!")
+                
+                # Loop to spawn multiple enemies dynamically
+                repeat i from 1 to 3 {
+                    spawn_monster("elemental_goo")
+                }
+                
+                show_message("3 elemental goo appeared!")
+                score += 50
+            }
+            
+            on_clear {
+                show_message("Arena cleared! Impressive!")
+                score += 150
+                enemiesDefeated += 3
+            }
+    
+        horde_chamber:
+            description: "A chamber filled with a zombie horde"
+            x: -12
+            y: -12
+            width: 12
+            height: 10
+            connections: ["entrance"]
+            
+            on_first_enter {
+                show_message("Warning: Zombie horde detected!")
+                
+      
+                repeat i from 1 to 5 {
+                    spawn_monster("zombie")
+                    print("Spawning zombie ", i, " of 5")
+                }
+                
+                show_message("5 zombies have appeared!")
+                alarmLevel += 3
+            }
+            
+            on_clear {
+                show_message("Horde defeated! You are a true warrior!")
+                score += 250
+                enemiesDefeated += 5
+                secretsFound += 1
+            }
+    
+        dragon_vault:
+            description: "A vault containing the dragon's treasure hoard"
+            x: 43
+            y: 0
+            width: 8
+            height: 8
+            connections: ["treasure_room"]
+            locked_by: dragon_scale
+            
+            on_first_enter {
+                show_message("You discovered the dragon's secret vault!")
+                score += 500
+                secretsFound += 1
+            }
+    
+        secret_passage:
+            description: "A hidden passage revealed by the complete map"
+            x: 0
+            y: -12
+            width: 10
+            height: 8
+            connections: ["entrance", "final_room"]
+            
+            on_first_enter {
+                show_message("The ancient map revealed this secret passage!")
+                score += 300
+                secretsFound += 1
+            }
+    
+        puzzle_master_vault:
+            description: "A vault only accessible to master puzzle solvers"
+            x: 28
+            y: 31
+            width: 8
+            height: 8
+            connections: ["puzzle_wing"]
+            
+            on_first_enter {
+                show_message("Your puzzle mastery has unlocked this vault!")
+                score += 400
+                secretsFound += 1
+                give_item("legendary_medal")
+            }
+
+
+    # =============================================================================
+    # QUIZZES - With event handlers for correct/wrong answers
+    # =============================================================================
+    quizzes:
+        entrance_riddle:
+            type: single_choice
+            question: "What has keys but no locks?"
+            answers: ["A piano", "A door", "A chest", "A map"]
+            correct_answers: [0]
+            explanation: "A piano has keys but no locks!"
+            reward: map_fragment_2
+            attached_to: wise_guide
+            
+            on_correct {
+                show_message("Correct! The riddle is solved!")
+                puzzlesSolved += 1
+                score += 100
+                give_item("map_fragment_2")
+            }
+            
+            on_wrong {
+                show_message("Incorrect! Try again.")
+                score -= 10
+            }
+    
+        library_quiz:
+            type: multiple_choice
+            question: "Which of these are precious metals?"
+            answers: ["Gold", "Iron", "Silver", "Wood"]
+            correct_answers: [0, 2]
+            explanation: "Gold and Silver are precious metals!"
+            reward: ancient_tome
+            attached_to: librarian
+            
+            on_correct {
+                show_message("Excellent knowledge!")
+                puzzlesSolved += 1
+                score += 150
+            }
+            
+            on_wrong {
+                show_message("Not quite right. Study more!")
+                score -= 15
+            }
+    
+        puzzle_wing_challenge:
+            type: single_choice
+            question: "I speak without a mouth and hear without ears. What am I?"
+            answers: ["An echo", "A ghost", "The wind", "A shadow"]
+            correct_answers: [0]
+            explanation: "An echo speaks without a mouth and hears without ears!"
+            reward: lab_key
+            attached_to: puzzle_guardian
+            
+            on_correct {
+                show_message("The puzzle guardian bows in respect!")
+                puzzlesSolved += 1
+                score += 120
+                unlock("secret_lab")
+            }
+            
+            on_wrong {
+                show_message("The guardian shakes its head.")
+                score -= 10
+            }
+    
+        final_challenge:
+            type: single_choice
+            question: "What must be broken before you can use it?"
+            answers: ["A promise", "An egg", "A seal", "A lock"]
+            correct_answers: [1]
+            explanation: "An egg must be broken before you can use it!"
+            reward: map_fragment_3
+            attached_to: puzzle_guardian
+            
+            on_correct {
+                show_message("Final puzzle solved! You are truly wise!")
+                puzzlesSolved += 1
+                score += 200
+                
+                if (puzzlesSolved >= 4) {
+                    show_message("MASTER PUZZLE SOLVER BONUS!")
+                    score += 300
+                }
+            }
+            
+            on_wrong {
+                show_message("Think harder!")
+                score -= 10
+            }
+
+
+    # =============================================================================
+    # ITEMS - With event handlers and dynamic behavior
+    # =============================================================================
+    items:
+        golden_key:
+            description: "A shimmering golden key"
+            type: "key"
+            texture: "items/key/big_key.png"
+            visible: true
+            
+            on_pickup {
+                keysCollected += 1
+                score += 100
+                show_message("You found the Golden Key! (" + keysCollected + "/" + requiredKeys + ")")
+                play_sound("key_pickup")
+            }
+    
+        silver_key:
+            description: "A sturdy silver key"
+            type: "key"
+            texture: "items/key/small_key.png"
+            visible: true
+            
+            on_pickup {
+                keysCollected += 1
+                score += 100
+                show_message("You found the Silver Key! (" + keysCollected + "/" + requiredKeys + ")")
+            }
+    
+        bronze_key:
+            description: "An ancient bronze key"
+            type: "key"
+            texture: "items/key/small_key.png"
+            visible: true
+            
+            on_pickup {
+                keysCollected += 1
+                score += 100
+                show_message("You found the Bronze Key! (" + keysCollected + "/" + requiredKeys + ")")
+            }
+    
+        map_fragment_1:
+            description: "The first piece of an ancient map"
+            type: "document"
+            texture: "items/book/red_book.png"
+            readable: true
+            content: "This fragment shows the northern passages..."
+            
+            on_pickup {
+                hasMapFragment1 = true
+                show_message("Map Fragment 1/3 acquired!")
+                score += 75
+            }
+            
+            on_use {
+                show_message("This fragment shows the northern passages...")
+            }
+    
+        map_fragment_2:
+            description: "The second piece of an ancient map"
+            type: "document"
+            texture: "items/book/red_book.png"
+            readable: true
+            content: "This fragment reveals the secret chambers..."
+            
+            on_pickup {
+                hasMapFragment2 = true
+                show_message("Map Fragment 2/3 acquired!")
+                score += 75
+            }
+    
+        map_fragment_3:
+            description: "The final piece of an ancient map"
+            type: "document"
+            texture: "items/book/red_book.png"
+            readable: true
+            content: "This fragment completes the map!"
+            
+            on_pickup {
+                hasMapFragment3 = true
+                show_message("Map Fragment 3/3 acquired!")
+                score += 75
+            }
+    
+        health_potion:
+            description: "A glowing red potion that restores health"
+            type: "tool"
+            texture: "items/potion/health_potion.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Health potion acquired!")
+                score += 10
+            }
+            
+            on_use {
+                show_message("You drink the health potion and feel refreshed!")
+                itemsUsed += 1
+                score += 5
+                # Note: Actual health restoration handled by game engine
+            }
+    
+        mana_potion:
+            description: "A glowing blue potion that restores mana"
+            type: "tool"
+            texture: "items/potion/mana_potion.png"
+            visible: true
+            
+            on_use {
+                show_message("Magical energy flows through you!")
+                itemsUsed += 1
+                score += 5
+            }
+    
+        master_potion:
+            description: "A legendary potion with immense power"
+            type: "tool"
+            texture: "items/potion/mana_potion.png"
+            visible: true
+            
+            on_pickup {
+                show_message("You found the legendary Master Potion!")
+                score += 150
+            }
+            
+            on_use {
+                show_message("Overwhelming power surges through your body!")
+                score += 50
+                itemsUsed += 1
+            }
+    
+        ancient_scroll:
+            description: "A scroll containing ancient wisdom"
+            type: "document"
+            texture: "items/book/spell_book.png"
+            readable: true
+            content: "The path to wisdom is paved with curiosity..."
+            visible: true
+            
+            on_pickup {
+                show_message("You found an ancient scroll!")
+                score += 50
+            }
+            
+            on_use {
+                show_message("The scroll reveals: 'The path to wisdom is paved with curiosity...'")
+            }
+    
+        treasure_chest:
+            description: "A large ornate treasure chest"
+            type: "decoration"
+            texture: "items/book/red_book.png"
+            visible: true
+            
+            on_use {
+                # TIER 2: Loop with range to spawn random rewards
+                repeat i from 1 to 3 {
+                    print("Generating treasure reward ", i)
+                }
+                
+                show_message("You open the treasure chest!")
+                give_item("gold_coins")
+                give_item("ruby")
+                score += 200
+            }
+    
+        wooden_sword:
+            description: "A basic wooden training sword"
+            type: "tool"
+            texture: "items/weapon/wooden_bow.png"
+            
+            on_pickup {
+                show_message("Basic weapon acquired.")
+                score += 5
+            }
+    
+        steel_sword:
+            description: "A well-crafted steel sword"
+            type: "tool"
+            texture: "items/weapon/legendary_sword.png"
+            
+            on_pickup {
+                show_message("Powerful steel sword acquired!")
+                score += 50
+            }
+    
+        steel_shield:
+            description: "A sturdy steel shield"
+            type: "tool"
+            texture: "items/weapon/wooden_bow.png"
+            
+            on_pickup {
+                show_message("Steel shield acquired! Your defense increases!")
+                score += 50
+            }
+    
+        lab_key:
+            description: "A key to the secret laboratory"
+            type: "key"
+            texture: "items/key/red_key.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Lab key acquired!")
+                score += 75
+            }
+    
+        armory_key:
+            description: "A key to the armory"
+            type: "key"
+            texture: "items/key/small_key.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Armory key acquired!")
+                score += 75
+            }
+    
+        final_door:
+            description: "The key to the final escape door"
+            type: "key"
+            texture: "items/key/blue_key.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Final door key acquired! You can now escape!")
+                score += 100
+            }
+    
+        ancient_tome:
+            description: "An ancient tome of great knowledge"
+            type: "document"
+            texture: "items/book/spell_book.png"
+            readable: true
+            content: "This tome contains ancient wisdom and secrets..."
+            visible: true
+            
+            on_pickup {
+                show_message("You found an ancient tome!")
+                score += 100
+            }
+    
+        starter_torch:
+            description: "A simple torch for lighting dark passages"
+            type: "tool"
+            texture: "items/book/spell_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Torch acquired!")
+                score += 5
+            }
+    
+        gold_coins:
+            description: "A pile of shimmering gold coins"
+            type: "tool"
+            texture: "items/book/red_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Gold coins acquired!")
+                score += 50
+            }
+    
+        ruby:
+            description: "A precious red ruby"
+            type: "tool"
+            texture: "items/book/red_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Ruby acquired!")
+                score += 100
+            }
+    
+        rare_gem:
+            description: "A rare and valuable gemstone"
+            type: "tool"
+            texture: "items/book/red_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Rare gem acquired!")
+                score += 150
+            }
+    
+        guardian_blessing:
+            description: "A blessing from the puzzle guardian"
+            type: "tool"
+            texture: "items/book/spell_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("The guardian's blessing fills you with power!")
+                score += 200
+            }
+    
+        legendary_medal:
+            description: "A medal awarded to legendary explorers"
+            type: "tool"
+            texture: "items/book/spell_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Legendary Explorer Medal acquired!")
+                score += 500
+            }
+    
+        dragon_scale:
+            description: "A scale from the mighty dragon"
+            type: "tool"
+            texture: "items/book/red_book.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Dragon scale acquired!")
+                score += 250
+            }
+    
+        legendary_sword:
+            description: "A legendary sword of immense power"
+            type: "tool"
+            texture: "items/weapon/legendary_sword.png"
+            visible: true
+            
+            on_pickup {
+                show_message("Legendary sword acquired!")
+                score += 300
+            }
+
+
+    # =============================================================================
+    # NPCs - With dialogue, combat stats, and event handlers
+    # =============================================================================
+    npcs:
+        merchant:
+            description: "A friendly traveling merchant"
+            texture: "character/monster/doc"
+            location: merchant_shop
+            hostile: false
+            dialogue:
+                default: "Welcome, traveler! Find all the keys to escape."
+                conditions:
+                    has_gold: "Ah, I see you have gold! Care to trade?"
+                    low_health: "You look hurt! Take this potion."
+            
+            on_interact {
+                talkedToMerchant = true
+                
+                if (goldSpent >= 100) {
+                    show_message("Merchant: Come back when you have more gold!")
+                    merchantGoodwill += 1
+                } else if (keysCollected >= 2) {
+                    show_message("Merchant: You're doing well! Keep up the good work!")
+                    score += 20
+                } else {
+                    show_message("Merchant: Safe travels, friend!")
+                }
+            }
+    
+        wise_guide:
+            description: "An elderly guide who knows the dungeon's secrets"
+            texture: "character/monster/wizard"
+            location: main_hall
+            hostile: false
+            dialogue:
+                default: "Welcome, traveler! Find all the keys to escape."
+            
+            on_interact {
+                talkedToGuide = true
+                
+                if (keysCollected == 0) {
+                    show_message("Guide: You haven't found any keys yet. Keep looking!")
+                } else if (keysCollected < requiredKeys) {
+                    show_message("Guide: You have " + keysCollected + " key(s). Keep searching!")
+                } else {
+                    show_message("Guide: You have all the keys! Find the treasure room!")
+                }
+                
+                # Score feedback
+                if (score < 100) {
+                    show_message("Guide: Your current score is " + score)
+                } else if (score < 500) {
+                    show_message("Guide: Good progress! Score: " + score)
+                } else {
+                    show_message("Guide: Excellent work! Score: " + score)
+                }
+                
+                score += 10
+            }
+    
+        elemental_goo:
+            description: "An elemental goo"
+            texture: "character/monster/elemental_goo"
+            hostile: true
+            health: 50
+            damage: 10
+            
+            on_death {
+                show_message("Elemental Goo warrior defeated!")
+                enemiesDefeated += 1
+                score += 50
+                
+                # TIER 2: Random loot with conditionals
+                if (enemiesDefeated >= 5) {
+                    give_item("rare_gem")
+                    show_message("A rare gem drops!")
+                }
+            }
+    
+        zombie:
+            description: "A shambling zombie"
+            texture: "character/monster/zombie"
+            hostile: true
+            health: 80
+            damage: 15
+            
+            on_death {
+                show_message("Zombie defeated!")
+                enemiesDefeated += 1
+                score += 60
+            }
+    
+        dragon_boss:
+            description: "A fearsome dragon guarding the treasure"
+            texture: "character/monster/big_demon"
+            location: treasure_room
+            hostile: true
+            health: 500
+            damage: 50
+            gives_items: ["dragon_scale", "legendary_sword"]
+            
+            on_death {
+                show_message("The mighty dragon has been slain!")
+                enemiesDefeated += 1
+                score += 500
+                secretsFound += 1
+                unlock("dragon_vault")
+            }
+            
+            on_interact {
+                show_message("The dragon roars menacingly!")
+                alarmLevel += 5
+            }
+    
+        puzzle_guardian:
+            description: "A mystical guardian of the puzzle wing"
+            texture: "character/monster/pumpkin_dude"
+            location: puzzle_wing
+            hostile: false
+            dialogue:
+                default: "Solve my riddles to pass."
+            
+            on_interact {
+                show_message("Guardian: Solve the puzzle to proceed.")
+                
+                if (puzzlesSolved >= 3) {
+                    show_message("Guardian: You have proven yourself worthy!")
+                    give_item("guardian_blessing")
+                    score += 100
+                }
+            }
+    
+        librarian:
+            description: "An ancient ghostly librarian"
+            texture: "character/monster/necromancer"
+            location: library
+            hostile: false
+            gives_items: ["map_fragment_1"]
+            dialogue:
+                default: "Knowledge is the key to freedom..."
+            
+            on_interact {
+                show_message("Librarian: This map fragment may help you...")
+                
+                if (!hasMapFragment1) {
+                    give_item("map_fragment_1")
+                }
+                
+                score += 25
+            }
+
+
+    # =============================================================================
+    # PLAYER - Configuration with all stats
+    # =============================================================================
+    player:
+        class: wizard
+        start_x: 31
+        start_y: 30
+        health: 100
+        mana: 50
+        stamina: 100
+        speed: 1.0
+        mana_restore: 2.0
+        stamina_restore: 1.0
+
+
+    # =============================================================================
+    # TIER 3: GLOBAL TRIGGERS - Game-wide reactive logic
+    # =============================================================================
+    triggers:
+        when (keysCollected >= requiredKeys && mapComplete && score >= 500) {
+            show_message("You have everything needed to escape!")
+            unlock("final_room")
+        }
+        
+        when (keysCollected == 1) {
+            show_message("First key collected! More to go!")
+            score += 50
+        }
+        
+        when (keysCollected == 2) {
+            show_message("Second key collected! Just one more!")
+            score += 75
+        }
+        
+        when (keysCollected >= requiredKeys) {
+            show_message("All keys collected! The treasure room awaits!")
+            score += 100
+        }
+        
+        when (hasMapFragment1 && hasMapFragment2 && hasMapFragment3) {
+            mapComplete = true
+            show_message("The ancient map is complete! A secret passage is revealed!")
+            unlock("secret_passage")
+            secretsFound += 1
+            score += 200
+        }
+        
+        when (score >= 500) {
+            show_message("Achievement Unlocked: Score Master!")
+        }
+        
+        when (score >= 1000) {
+            show_message("Achievement Unlocked: Legendary Explorer!")
+            give_item("legendary_medal")
+        }
+        
+        when (secretsFound >= 3) {
+            show_message("Achievement: Secret Hunter! You found 3 secrets!")
+            score += 150
+        }
+        
+        when (enemiesDefeated >= 5) {
+            show_message("Achievement: Warrior! You defeated 5 enemies!")
+            score += 100
+        }
+        
+        when (puzzlesSolved >= 3) {
+            show_message("Achievement: Puzzle Master!")
+            unlock("puzzle_master_vault")
+            score += 200
+        }
+        
+        when (merchantGoodwill >= 3) {
+            show_message("The merchant now offers you special items!")
+        }
+
+
+    # =============================================================================
+    # LOGIC - Win conditions and dependencies
+    # =============================================================================
+    logic:
+        win_condition: hasAllKeys AND mapComplete
+        dependencies:
+            treasure_room: golden_key
+            secret_lab: lab_key
+            armory: armory_key
+            final_room: final_door
+
+
+    # =============================================================================
+    # EVENTS - Legacy event system (alternative to triggers)
+    # =============================================================================
+    events:
+        on_puzzle_solved: puzzle_wing_challenge:
+            actions:
+                unlock_door: secret_lab
+                show_message: "The secret laboratory is now accessible!"
+        
+        on_puzzle_solved: entrance_riddle:
+            actions:
+                show_message: "You feel wiser now..."
+                update_state: riddle_solved
