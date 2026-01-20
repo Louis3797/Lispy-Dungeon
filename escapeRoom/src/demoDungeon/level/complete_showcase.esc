@@ -1,9 +1,3 @@
-# =============================================================================
-# COMPLETE DSL SHOWCASE
-# Demonstrates ALL implemented features: Variables, Expressions, Conditionals,
-# Loops, Event Handlers, Triggers, and all entity types
-# =============================================================================
-
 escape_room:
 
     # =============================================================================
@@ -20,7 +14,7 @@ escape_room:
 
 
     # =============================================================================
-    # TIER 1: VARIABLES - Track game state
+    # VARIABLES - Track game state
     # =============================================================================
     variables:
         # Progress tracking
@@ -72,8 +66,7 @@ escape_room:
             on_enter {
                 roomsVisited += 1
                 score += 10
-                
-                # TIER 2: Conditional welcome messages
+            
                 if (roomsVisited == 1) {
                     show_message("Welcome to the Complete DSL Adventure!")
                     show_message("Find " + requiredKeys + " keys to unlock the treasure room!")
@@ -101,7 +94,6 @@ escape_room:
             on_enter {
                 roomsVisited += 1
                 
-                # TIER 2: Complex conditional logic
                 if (keysCollected == 0) {
                     show_message("Find keys to unlock the treasure room!")
                 } else if (keysCollected < requiredKeys) {
@@ -135,8 +127,6 @@ escape_room:
             
             on_enter {
                 show_message("You found the treasure room!")
-                
-                # TIER 2: Math expressions for dynamic rewards
                 score += treasureValue * difficultyMultiplier
             }
             
@@ -145,7 +135,7 @@ escape_room:
                 score += 500
                 secretsFound += 1
                 
-                # TIER 2: Loop to spawn multiple treasures
+               
                 repeat 5 {
                     print("Spawning treasure pile...")
                 }
@@ -300,7 +290,7 @@ escape_room:
             locked_by: final_door
             
             on_enter {
-                # TIER 2: Complex victory condition
+
                 if (keysCollected >= requiredKeys && mapComplete) {
                     show_message("Congratulations! You can escape!")
                     show_message("Final Score: " + score)
@@ -656,7 +646,6 @@ escape_room:
             visible: true
             
             on_use {
-                # TIER 2: Loop with range to spawn random rewards
                 repeat i from 1 to 3 {
                     print("Generating treasure reward ", i)
                 }
@@ -903,8 +892,6 @@ escape_room:
                 show_message("Elemental Goo warrior defeated!")
                 enemiesDefeated += 1
                 score += 50
-                
-                # TIER 2: Random loot with conditionals
                 if (enemiesDefeated >= 5) {
                     give_item("rare_gem")
                     show_message("A rare gem drops!")
@@ -1000,7 +987,7 @@ escape_room:
 
 
     # =============================================================================
-    # TIER 3: GLOBAL TRIGGERS - Game-wide reactive logic
+    # GLOBAL TRIGGERS - Game-wide reactive logic
     # =============================================================================
     triggers:
         when (keysCollected >= requiredKeys && mapComplete && score >= 500) {

@@ -6,14 +6,10 @@ escape_room:
 	'escape_room:' metadata variables_block? rooms? quizzes? items? npcs? player? triggers_block?
 		logic? events?;
 
-// ============================================================================ TIER 1: Variables
-// Block ============================================================================
 variables_block: 'variables:' variable_def*;
 
 variable_def: ID ':' expression;
 
-// ============================================================================ TIER 2: Expressions
-// (with precedence) ============================================================================
 expression:
 	primary_expression										# PrimaryExpr
 	| expression '.' ID										# PropertyAccessExpr
@@ -36,15 +32,10 @@ primary_expression:
 	| '(' expression ')'	# ParenExpr
 	| array					# ArrayLiteral;
 
-// ============================================================================ TIER 3: Triggers
-// Block (Global Conditions)
-// ============================================================================
 triggers_block: 'triggers:' trigger_def*;
 
 trigger_def: 'when' '(' expression ')' statement_block;
 
-// ============================================================================ TIER 3: Statements &
-// Event Handlers ============================================================================
 statement_block: '{' statement* '}';
 
 statement:
@@ -89,9 +80,6 @@ repeat_statement:
 	'repeat' INT statement_block									# RepeatCount
 	| 'repeat' ID 'from' expression 'to' expression statement_block	# RepeatRange;
 
-// ============================================================================ TIER 3: Event
-// Handlers (for rooms, items, npcs)
-// ============================================================================
 event_handler:
 	'on_enter' statement_block
 	| 'on_exit' statement_block
@@ -139,7 +127,7 @@ room_property:
 	| room_npcs_property
 	| room_connections_property
 	| room_locked_by_property
-	| event_handler; // TIER 3: Rooms can have event handlers
+	| event_handler;
 
 room_description_property: 'description:' STRING;
 room_x_property: 'x:' INT;
@@ -165,7 +153,7 @@ item_property:
 	| item_visible_property
 	| item_readable_property
 	| item_content_property
-	| event_handler; // TIER 3: Items can have event handlers
+	| event_handler;
 
 item_description_property: 'description:' STRING;
 item_type_property: 'type:' (ITEM_TYPE | STRING);
@@ -192,7 +180,7 @@ npc_property:
 	| npc_hostile_property
 	| npc_health_property
 	| npc_damage_property
-	| event_handler; // TIER 3: NPCs can have event handlers
+	| event_handler;
 
 npc_description_property: 'description:' STRING;
 npc_texture_property: 'texture:' STRING;
@@ -253,7 +241,7 @@ quiz_property:
 	| quiz_explanation_property
 	| quiz_reward_property
 	| quiz_attached_to_property
-	| event_handler; // TIER 3: Quizzes can have event handlers
+	| event_handler;
 
 quiz_type_property: 'type:' QUIZ_TYPE;
 quiz_question_property: 'question:' STRING;
