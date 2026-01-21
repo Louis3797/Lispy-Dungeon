@@ -2,8 +2,8 @@
 
 **Lispy-Dungeon Escape Room DSL - Complete Developer Guide**
 
-Version: 1.0  
-Last Updated: October 25, 2025
+Version: 2.0  
+Last Updated: January 19, 2026
 
 ---
 
@@ -25,7 +25,7 @@ Last Updated: October 25, 2025
 
 ## Introduction
 
-The Escape Room DSL is a domain-specific language built on top of the Lispy-Dungeon game engine. It allows game designers and educators to create complex, multi-room puzzle adventures without writing Java code. This documentation provides a complete technical reference for understanding and extending the system.
+The Escape Room DSL is a **full-featured programming language** built on top of the Lispy-Dungeon game engine. What started as a simple configuration format has evolved into a complete scripting language with variables, expressions, conditionals, loops, event handlers, and triggers. It allows game designers and educators to create complex, multi-room puzzle adventures with dynamic game logic - all without writing any Java code. This documentation provides a complete technical reference for understanding and extending the system.
 
 ## System Architecture
 
@@ -43,12 +43,17 @@ The Escape Room DSL is a domain-specific language built on top of the Lispy-Dung
          │
          ▼
 ┌─────────────────┐
-│  ANTLR4 Parser  │  Syntax analysis & AST generation
+│  ANTLR4 Parser  │  Syntax analysis & Parse Tree generation
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Interpreter    │  AST traversal → EscapeRoomDefinition
+│    Visitors     │  Parse Tree -> AST conversion (Expressions, Statements)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Interpreter    │  AST -> EscapeRoomDefinition
 └────────┬────────┘
          │
          ▼
@@ -59,27 +64,39 @@ The Escape Room DSL is a domain-specific language built on top of the Lispy-Dung
          ▼
 ┌─────────────────┐
 │ Entity Spawner  │  Create game entities (items, NPCs, quizzes)
+│  + Event Wiring │  Wrap callbacks to fire DSL events
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  DSL Runtime    │  Initialize variables, register event handlers & triggers
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
 │   Game Engine   │  Run the escape room
+│  + Event System │  Fire events -> Execute handlers -> Check triggers
 └─────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component          | Location                           | Purpose                               |
-| ------------------ | ---------------------------------- | ------------------------------------- |
-| **DSL Grammar**    | `escape_room_dsl/EscapeRoomDSL.g4` | Defines syntax rules                  |
-| **Lexer/Parser**   | `dsl/parser/` (generated)          | Tokenize and parse DSL files          |
-| **Interpreter**    | `dsl/EscapeRoomInterpreter.java`   | Convert parse tree to data structures |
-| **Data Models**    | `dsl/EscapeRoomDefinition.java`    | Store parsed escape room data         |
-| **Level Loader**   | `dsl/DSLLevelLoader.java`          | Generate playable level layouts       |
-| **Entity Spawner** | `dsl/DSLEntitySpawner.java`        | Create game entities                  |
-| **Quiz System**    | `dsl/Quiz*.java`                   | Handle quiz interactions              |
-| **Door System**    | `dsl/Door*.java`                   | Manage locked doors and keys          |
-| **Game Starter**   | `starter/DSLEscapeRoom.java`       | Initialize and run the game           |
+| Component          | Location                           | Purpose                                           |
+| ------------------ | ---------------------------------- | ------------------------------------------------- |
+| **DSL Grammar**    | `escape_room_dsl/EscapeRoomDSL.g4` | Defines syntax rules (TIER 1-3)                   |
+| **Lexer/Parser**   | `dsl/parser/` (generated)          | Tokenize and parse DSL files                      |
+| **Visitors**       | `dsl/runtime/*Visitor.java`        | Convert parse tree to AST                         |
+| **AST Classes**    | `dsl/runtime/ast/*.java`           | Expression and Statement nodes                    |
+| **DSL Runtime**    | `dsl/runtime/DSLRuntime.java`      | Execute expressions, statements, events, triggers |
+| **Interpreter**    | `dsl/EscapeRoomInterpreter.java`   | Convert AST to EscapeRoomDefinition               |
+| **Data Models**    | `dsl/EscapeRoomDefinition.java`    | Store parsed escape room data                     |
+| **Level Loader**   | `dsl/DSLLevelLoader.java`          | Generate playable level layouts                   |
+| **Entity Spawner** | `dsl/DSLEntitySpawner.java`        | Create game entities + wire events                |
+| **Event System**   | `dsl/runtime/EventHandler.java`    | Event registration and dispatch                   |
+| **Trigger System** | `dsl/runtime/Trigger.java`         | Condition monitoring and execution                |
+| **Quiz System**    | `dsl/Quiz*.java`                   | Handle quiz interactions                          |
+| **Door System**    | `dsl/Door*.java`                   | Manage locked doors and keys                      |
+| **Game Starter**   | `starter/DSLEscapeRoom.java`       | Initialize and run the game                       |
 
 ## Key Technologies
 
@@ -111,26 +128,67 @@ The Escape Room DSL is a domain-specific language built on top of the Lispy-Dung
 ### 1. Parse Time (Startup)
 
 ```
-DSL File → Lexer → Tokens → Parser → Parse Tree → Interpreter → EscapeRoomDefinition
+DSL File -> Lexer -> Tokens -> Parser -> Parse Tree -> Visitors -> AST -> Interpreter -> EscapeRoomDefinition
 ```
+
+**Details:**
+
+-   ANTLR generates parse tree from DSL syntax
+-   ExpressionVisitor converts expression nodes to AST (BinaryExpr, IntLiteralExpr, etc.)
+-   StatementVisitor converts statement nodes to AST (IfStatement, RepeatStatement, etc.)
+-   EscapeRoomVisitor processes top-level structures (rooms, items, NPCs, etc.)
+-   Interpreter assembles everything into EscapeRoomDefinition
 
 ### 2. Level Generation (Startup)
 
 ```
-EscapeRoomDefinition → DSLLevelLoader → LevelElement[][] → DungeonLevel
+EscapeRoomDefinition -> DSLLevelLoader -> LevelElement[][] -> DungeonLevel
 ```
+
+**Details:**
+
+-   Calculate room positions and sizes
+-   Generate 2D layout array with rooms and corridors
+-   Place doors at corridor entrances
+-   Return DungeonLevel object
 
 ### 3. Entity Spawning (Startup)
 
 ```
-EscapeRoomDefinition → DSLEntitySpawner → Entity instances → Game.add()
+EscapeRoomDefinition -> DSLEntitySpawner -> Entity instances + Event Wiring -> Game.add()
 ```
 
-### 4. Runtime (Gameplay)
+**Details:**
+
+-   Spawn items with wrapped interaction callbacks (Decorator Pattern)
+-   Spawn NPCs with wrapped interaction/death callbacks
+-   Create RoomTrackingSystem for room entry/exit events
+-   Register all entities with game engine
+
+### 4. Runtime Initialization (Startup)
 
 ```
-Player Input → Game Systems → Component Updates → Render → Repeat
+EscapeRoomDefinition -> DSLRuntime.initialize()
 ```
+
+**Details:**
+
+-   Evaluate variable initial expressions -> store in global scope
+-   Register event handlers (room/item/NPC events)
+-   Register triggers (global condition watchers)
+
+### 5. Gameplay (Runtime)
+
+```
+Player Action -> Game Engine -> Event Fired -> Event Handlers Execute -> Triggers Check -> UI Update
+```
+
+**Details:**
+
+-   Player picks up item -> wrapped callback fires ON_PICKUP event
+-   Runtime executes all registered handlers for that event
+-   Runtime checks all triggers after event handlers complete
+-   Trigger fires if condition becomes true
 
 ## File Structure
 
@@ -337,4 +395,4 @@ To understand the system in depth, read the documentation in order:
 
 ---
 
-**Next**: [DSL Grammar →](01-dsl-grammar.md)
+**Next**: [DSL Grammar ->](01-dsl-grammar.md)

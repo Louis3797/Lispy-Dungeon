@@ -1,9 +1,41 @@
 # Escape Room DSL Documentation
 
-**Version:** 1.1  
-**Last Updated:** October 26, 2025
+**Version:** 2.0  
+**Last Updated:** January 20, 2026
 
 ## Changelog
+
+### Version 2.0 (January 2026)
+
+**Major Update - Full Programming Language Features:**
+
+-   🔢 **Variables** - Define and manipulate variables with expressions
+    -   Initial values with math expressions: `score: 50 + 25`
+    -   Variable types: numbers, strings, booleans
+-   📝 **Event Handlers** - React to game events with custom logic
+    -   Room events: `on_enter`, `on_exit`, `on_first_enter`, `on_clear`
+    -   Item events: `on_pickup`, `on_use`, `on_drop`
+    -   NPC events: `on_interact`, `on_death`
+    -   Quiz events: `on_correct`, `on_wrong`
+-   🎯 **Triggers** - Global conditions that fire when met
+    -   Syntax: `when (condition) { actions }`
+    -   Automatic checking after every event
+-   🔄 **Control Flow** - Programming constructs
+    -   If/else statements with full conditional logic
+    -   Repeat loops: `repeat 3 { ... }` and `repeat i from 1 to 5 { ... }`
+    -   Chained conditions with `&&` and `||`
+-   ⚙️ **Expressions & Operations** - Full expression system
+    -   Math: `+`, `-`, `*`, `/`, `%`
+    -   Comparisons: `<`, `>`, `<=`, `>=`, `==`, `!=`
+    -   Logic: `&&`, `||`, `!`
+    -   String concatenation and property access: `player.health`
+-   🛠️ **Built-in Functions** - 30+ functions for game control
+    -   UI: `show_message()`, `print()`
+    -   Game state: `victory()`, `game_over()`, `unlock()`, `lock()`
+    -   Items: `give_item()`, `has_item()`
+    -   Spawning: `spawn()`, `spawn_monster()`
+    -   Math: `min()`, `max()`, `abs()`, `random()`
+    -   Player: `get_health()`, `set_health()`, `damage_player()`
 
 ### Version 1.1 (October 26, 2025)
 
@@ -47,9 +79,49 @@
 
 ## Overview
 
-The Escape Room DSL (Domain Specific Language) is a human-readable, YAML-like language for creating educational escape room experiences in the Lispy-Dungeon framework. Create multi-room puzzle adventures with locked doors, interactive items, NPCs, and quizzes without writing any Java code.
+The Escape Room DSL (Domain Specific Language) is a **full-featured programming language** designed for creating educational escape room experiences in the Lispy-Dungeon framework. What started as a simple configuration format has evolved into a complete scripting language with variables, expressions, conditionals, loops, event handlers, and triggers.
+
+Create multi-room puzzle adventures with complex interactive logic, dynamic scoring systems, conditional item spawning, and rich narrative experiences - all without writing any Java code.
 
 ### Current Features
+
+#### 🔢 **Programming Language Features (TIER 1-3)**
+
+-   ✅ **Variables** - Define and manipulate game state
+    -   Global variables with initial expressions
+    -   Runtime variable modification with `+=`, `-=`, `*=`, `/=`
+    -   Scoped variables in loops
+-   ✅ **Expressions** - Full expression evaluation system
+    -   Arithmetic: `score + 100`, `health * 1.5`
+    -   Comparisons: `keysCollected >= 3`, `health > 50`
+    -   Logical operators: `hasKey && doorLocked`, `dead || won`
+    -   String concatenation: `"You have " + score + " points"`
+    -   Property access: `player.health`, `enemy.damage`
+-   ✅ **Conditionals** - If/else statements with full logic
+    -   Simple: `if (condition) { ... }`
+    -   With else: `if (condition) { ... } else { ... }`
+    -   Chained: `if (cond1) { ... } else if (cond2) { ... } else { ... }`
+    -   Nested conditions supported
+-   ✅ **Loops** - Two forms of repetition
+    -   Simple repeat: `repeat 3 { ... }` - Execute N times
+    -   Range repeat: `repeat i from 1 to 5 { ... }` - Loop variable
+-   ✅ **Event Handlers** - React to game events
+    -   Room events: `on_enter`, `on_exit`, `on_first_enter`, `on_clear`
+    -   Item events: `on_pickup`, `on_use`, `on_drop`
+    -   NPC events: `on_interact`, `on_death`
+    -   Quiz events: `on_correct`, `on_wrong`
+-   ✅ **Triggers** - Global condition monitoring
+    -   Syntax: `when (condition) { statements }`
+    -   Checked automatically after every event
+    -   Multiple triggers supported
+-   ✅ **Built-in Functions** - 30+ game control functions
+    -   UI: `show_message()`, `print()`
+    -   Doors: `unlock()`, `lock()`
+    -   Game state: `victory()`, `game_over()`
+    -   Items: `give_item()`, `has_item()`, `remove_item()`
+    -   Spawning: `spawn()`, `spawn_monster()`
+    -   Player: `get_health()`, `set_health()`, `damage_player()`, `heal_player()`
+    -   Math: `min()`, `max()`, `abs()`, `random()`, `floor()`, `ceil()`
 
 #### 🏗️ **Level Design**
 
@@ -218,16 +290,524 @@ rooms:
 ```dsl
 escape_room:
     metadata:        # Game information (required)
+    variables:       # Global variables (optional - TIER 1)
     rooms:           # Physical spaces (required - at least 1 room)
     items:           # Collectible objects (optional)
     quizzes:         # Interactive puzzles (optional)
     npcs:            # Non-player characters (optional)
     player:          # Player character configuration (optional)
+    triggers:        # Global condition watchers (optional - TIER 3)
 ```
 
 ---
 
 ## Section Reference
+
+### 0. Variables (Optional - TIER 1)
+
+Define global variables that persist across the entire game session. Variables can store numbers, strings, booleans, and be used in expressions throughout your escape room.
+
+**Properties:**
+
+```dsl
+variables:
+    variable_name: expression    # Any valid expression as initial value
+```
+
+**Supported Types:**
+
+-   **Numbers**: Integers (`42`, `-10`) or floats (`3.14`, `-2.5`)
+-   **Strings**: Text in quotes (`"Hello"`, `'World'`)
+-   **Booleans**: `true` or `false`
+-   **Expressions**: Any valid math expression (`50 + 25`, `10 * 3`)
+
+**Variable Names:**
+
+-   Must start with a letter or underscore
+-   Can contain letters, numbers, and underscores
+-   Case-sensitive (`score` ≠ `Score`)
+
+**Example:**
+
+```dsl
+variables:
+    score: 0
+    keysCollected: 0
+    totalKeys: 3
+    playerName: "Hero"
+    secretFound: false
+    damageMultiplier: 1.5
+
+    # Expression-based initial values
+    startingGold: 50 + 25          # 75
+    maxScore: 100 * 10             # 1000
+    isReady: true && false         # false
+```
+
+**Modifying Variables:**
+
+Variables can be modified in event handlers, triggers, and statements using assignment operators:
+
+```dsl
+score = 100              # Set to exact value
+score += 50              # Add to current value
+score -= 25              # Subtract from current value
+score *= 2               # Multiply current value
+score /= 4               # Divide current value
+```
+
+**Usage in Conditions:**
+
+```dsl
+if (score >= 100) {
+    show_message("High score achieved!")
+}
+
+when (keysCollected >= totalKeys) {
+    unlock("treasure_vault")
+    victory("You win!")
+}
+```
+
+---
+
+### 0.1 Expressions (TIER 2)
+
+The DSL supports full expression evaluation with proper operator precedence.
+
+**Arithmetic Operators:**
+
+```dsl
+score + 100              # Addition
+health - 25              # Subtraction
+damage * 1.5             # Multiplication
+gold / 2                 # Division
+level % 3                # Modulo (remainder)
+```
+
+**Comparison Operators:**
+
+```dsl
+health > 50              # Greater than
+level >= 5               # Greater than or equal
+score < 100              # Less than
+keys <= 3                # Less than or equal
+name == "Hero"           # Equal to
+difficulty != "easy"     # Not equal to
+```
+
+**Logical Operators:**
+
+```dsl
+hasKey && doorLocked     # AND (both must be true)
+won || lost              # OR (either can be true)
+!gameOver                # NOT (inverts boolean)
+```
+
+**String Operations:**
+
+```dsl
+"Score: " + score                    # Concatenation
+"You have " + keys + " keys"         # Multiple concatenation
+```
+
+**Property Access:**
+
+```dsl
+player.health            # Access player health
+player.mana              # Access player mana
+enemy.damage             # Access NPC/enemy properties
+```
+
+**Function Calls:**
+
+```dsl
+min(10, 20)              # Returns 10
+max(score, 100)          # Returns higher value
+random(1, 6)             # Random number 1-6 (dice roll)
+abs(-15)                 # Returns 15
+```
+
+**Operator Precedence** (highest to lowest):
+
+1. Property access: `.`
+2. Function calls: `func()`
+3. Unary operators: `-`, `!`
+4. Multiplication/Division: `*`, `/`, `%`
+5. Addition/Subtraction: `+`, `-`
+6. Comparisons: `<`, `>`, `<=`, `>=`
+7. Equality: `==`, `!=`
+8. Logical AND: `&&`
+9. Logical OR: `||`
+
+**Example:**
+
+```dsl
+# Complex expression evaluation
+result: 3 + 4 * 5               # Result: 23 (not 35)
+condition: health > 50 && mana >= 25    # Both must be true
+message: "Level " + (currentLevel + 1)  # String concatenation
+```
+
+---
+
+### 0.2 Statements & Control Flow (TIER 2)
+
+**Assignment Statements:**
+
+```dsl
+score = 100              # Direct assignment
+score += 50              # Add and assign
+health -= damage         # Subtract and assign
+gold *= 2                # Multiply and assign
+points /= 10             # Divide and assign
+```
+
+**If/Else Statements:**
+
+```dsl
+# Simple if
+if (condition) {
+    statements
+}
+
+# If with else
+if (condition) {
+    statements
+} else {
+    statements
+}
+
+# Chained if/else
+if (score >= 1000) {
+    show_message("Legendary!")
+} else if (score >= 500) {
+    show_message("Expert!")
+} else if (score >= 100) {
+    show_message("Good job!")
+} else {
+    show_message("Keep trying!")
+}
+```
+
+**Repeat Loops:**
+
+```dsl
+# Simple repeat - execute N times
+repeat 3 {
+    print("Spawning treasure...")
+    score += 100
+}
+
+# Range repeat - loop with variable
+repeat i from 1 to 5 {
+    print("Iteration: " + i)
+    spawn_monster("goblin_" + i)
+}
+
+# Countdown example
+repeat i from 5 to 1 {
+    show_message("Countdown: " + i)
+}
+```
+
+**Important Notes:**
+
+-   Loop variables (`i` in examples) are scoped to the loop only
+-   `repeat 3 { ... }` uses a literal number, not a variable
+-   For dynamic repetition, use `repeat i from 1 to count { ... }`
+-   Loops can be nested
+
+---
+
+### 0.3 Event Handlers (TIER 3)
+
+Event handlers allow you to execute custom logic when specific game events occur. All event handlers use statement blocks with curly braces `{ }`.
+
+**Room Events:**
+
+```dsl
+rooms:
+    entrance:
+        # ...room properties...
+
+        on_enter {
+            # Executed every time player enters room
+            show_message("Welcome!")
+            score += 10
+        }
+
+        on_exit {
+            # Executed when player leaves room
+            print("Player left entrance")
+        }
+
+        on_first_enter {
+            # Only executed on FIRST entry
+            give_item("starter_torch")
+            show_message("First time here!")
+        }
+
+        on_clear {
+            # Executed when all enemies in room defeated
+            show_message("Room cleared!")
+            unlock("next_room")
+        }
+```
+
+**Item Events:**
+
+```dsl
+items:
+    golden_key:
+        # ...item properties...
+
+        on_pickup {
+            # Executed when player picks up item
+            score += 50
+            keysCollected += 1
+            show_message("Key collected!")
+
+            if (keysCollected >= totalKeys) {
+                show_message("All keys found!")
+            }
+        }
+
+        on_use {
+            # Executed when player uses item
+            print("Used golden key")
+        }
+
+        on_drop {
+            # Executed when player drops item
+            keysCollected -= 1
+        }
+```
+
+**NPC Events:**
+
+```dsl
+npcs:
+    guardian:
+        # ...NPC properties...
+
+        on_interact {
+            # Executed when player interacts (E key)
+            show_message("I guard this temple...")
+            questStarted = true
+        }
+
+    boss_monster:
+        hostile: true
+
+        on_death {
+            # Executed when NPC/monster dies
+            score += 500
+            give_item("boss_key")
+            show_message("Boss defeated!")
+        }
+```
+
+**Quiz Events:**
+
+```dsl
+quizzes:
+    riddle_1:
+        # ...quiz properties...
+
+        on_correct {
+            # Executed when quiz answered correctly
+            score += 100
+            print("Correct answer!")
+        }
+
+        on_wrong {
+            # Executed when quiz answered wrong
+            print("Wrong answer, try again")
+        }
+```
+
+**Event Handler Features:**
+
+-   Full access to all variables
+-   Can use if/else, loops, function calls
+-   Can modify variables with `+=`, `-=`, etc.
+-   Can call built-in functions
+-   Can be nested (if statements in event handlers)
+-   Executed in the order defined
+
+---
+
+### 0.4 Triggers (TIER 3)
+
+Triggers are global conditions that are checked automatically after every game event. When a trigger's condition becomes true, its statements execute.
+
+**Syntax:**
+
+```dsl
+triggers:
+    when (condition) {
+        statements
+    }
+
+    when (another_condition) {
+        more_statements
+    }
+```
+
+**Example:**
+
+```dsl
+triggers:
+    # Victory condition
+    when (keysCollected >= 3 && score >= 500) {
+        unlock("exit_room")
+        victory("You win! All keys collected with high score!")
+    }
+
+    # Secret unlock
+    when (secretFound && hasItem("ancient_scroll")) {
+        unlock("secret_chamber")
+        show_message("Secret chamber unlocked!")
+    }
+
+    # Low health warning
+    when (player.health < 20) {
+        show_message("Warning: Low health!")
+        play_sound("warning")
+    }
+
+    # Quest progression
+    when (monstersKilled >= 10) {
+        give_item("warrior_badge")
+        show_message("Warrior badge earned!")
+    }
+```
+
+**Trigger Behavior:**
+
+-   Checked after **every event** (room entry, item pickup, etc.)
+-   Execute **once** when condition becomes true
+-   Won't re-execute unless condition becomes false then true again
+-   Multiple triggers can fire from the same event
+-   Useful for win conditions, quest progression, achievement systems
+
+**Common Patterns:**
+
+```dsl
+# Boss fight trigger
+when (bossDefeated && keysCollected >= 3) {
+    unlock("final_door")
+    show_message("The path is clear!")
+}
+
+# Time-based (if you track a timer variable)
+when (gameTime >= 300) {
+    show_message("5 minutes elapsed!")
+}
+
+# Combo system
+when (enemiesKilledInRow >= 5) {
+    score += 200
+    show_message("Combo bonus!")
+}
+```
+
+---
+
+### 0.5 Built-in Functions (TIER 2-3)
+
+The DSL provides 30+ built-in functions for controlling game behavior.
+
+**UI Functions:**
+
+```dsl
+show_message("Text")              # Display message to player
+print("Debug text")               # Print to console (debugging)
+print("Score: ", score)           # Print with variables
+```
+
+**Door Functions:**
+
+```dsl
+unlock("room_id")                 # Unlock a locked room
+lock("room_id")                   # Lock a room
+```
+
+**Game State Functions:**
+
+```dsl
+victory("Win message")            # End game in victory
+game_over("Lose message")         # End game in defeat
+```
+
+**Item Functions:**
+
+```dsl
+give_item("item_id")              # Add item to player inventory
+has_item("item_id")               # Returns true if player has item
+remove_item("item_id")            # Remove item from inventory
+```
+
+**Spawning Functions:**
+
+```dsl
+spawn("entity_id")                # Spawn an entity in current room
+spawn_monster("monster_id")       # Spawn a hostile monster
+```
+
+**Player Functions:**
+
+```dsl
+get_health()                      # Get current player health
+set_health(50)                    # Set player health to value
+damage_player(10)                 # Damage player by amount
+heal_player(25)                   # Heal player by amount
+```
+
+**Math Functions:**
+
+```dsl
+min(a, b)                         # Returns smaller value
+max(a, b)                         # Returns larger value
+abs(x)                            # Absolute value
+random(min, max)                  # Random integer between min and max (inclusive)
+floor(x)                          # Round down to integer
+ceil(x)                           # Round up to integer
+round(x)                          # Round to nearest integer
+sqrt(x)                           # Square root
+```
+
+**String Functions:**
+
+```dsl
+len("text")                       # Length of string
+substring("hello", 0, 3)          # Extract substring ("hel")
+to_upper("text")                  # Convert to uppercase
+to_lower("TEXT")                  # Convert to lowercase
+```
+
+**Sound Functions:**
+
+```dsl
+play_sound("sound_name")          # Play a sound effect
+```
+
+**Example Usage:**
+
+```dsl
+on_pickup {
+    score += random(10, 50)       # Random score bonus
+    newHealth: min(player.health + 25, 100)  # Cap health at 100
+    set_health(newHealth)
+
+    if (has_item("key1") && has_item("key2")) {
+        unlock("treasure_vault")
+    }
+}
+```
+
+---
 
 ### 1. Metadata (Required)
 
@@ -306,6 +886,20 @@ rooms:
         fog_view_distance: 5          # Custom view distance for this room (optional)
         camera_zoom: 1.2              # Custom camera zoom for this room (optional)
         camera_focus: hero            # Camera focus: "hero" or entity name (optional)
+
+        # Event Handlers (TIER 3 - optional)
+        on_enter {                    # Executed when player enters room
+            # statements
+        }
+        on_exit {                     # Executed when player leaves room
+            # statements
+        }
+        on_first_enter {              # Only executed on first entry
+            # statements
+        }
+        on_clear {                    # Executed when all enemies defeated
+            # statements
+        }
 ```
 
 **ASCII Pattern Symbols:**
@@ -439,6 +1033,17 @@ items:
         visible: true                 # Show in world (optional, default: true)
         readable: false               # Can be read (optional, for books/scrolls)
         content: "Text content"       # Text shown when read (if readable: true)
+
+        # Event Handlers (TIER 3 - optional)
+        on_pickup {                   # Executed when player picks up item
+            # statements
+        }
+        on_use {                      # Executed when player uses item
+            # statements
+        }
+        on_drop {                     # Executed when player drops item
+            # statements
+        }
 ```
 
 **Item Types:**
@@ -460,6 +1065,16 @@ items:
         texture: "items/key/big_key.png"
         visible: true
 
+        on_pickup {
+            score += 50
+            keysCollected += 1
+            show_message("Golden key acquired!")
+
+            if (keysCollected >= totalKeys) {
+                show_message("All keys collected!")
+            }
+        }
+
     ancient_scroll:
         description: "An old scroll with cryptic writing"
         type: "readable"
@@ -467,11 +1082,21 @@ items:
         readable: true
         content: "The key lies where the sun sets..."
 
-    rusty_key:
-        description: "A rusty old key"
-        type: "key"
-        texture: "items/key/small_key.png"
-        visible: true
+        on_pickup {
+            secretFound = true
+            print("Secret lore discovered")
+        }
+
+    health_potion:
+        description: "A healing potion"
+        type: "consumable"
+        texture: "items/potion"
+
+        on_use {
+            heal_player(50)
+            remove_item("health_potion")
+            show_message("Restored 50 health!")
+        }
 ```
 
 ---
@@ -491,6 +1116,14 @@ quizzes:
         correct_answers: [0, 2]           # Indices of correct answers (required)
         reward: item_id                   # Item given on success (optional)
         attached_to: entity_id            # Entity that triggers quiz (required)
+
+        # Event Handlers (TIER 3 - optional)
+        on_correct {                      # Executed when answered correctly
+            # statements
+        }
+        on_wrong {                        # Executed when answered incorrectly
+            # statements
+        }
 ```
 
 **Quiz Types:**
@@ -512,6 +1145,15 @@ quizzes:
         reward: golden_key
         attached_to: chest
 
+        on_correct {
+            score += 100
+            print("Correct! Treasure unlocked")
+        }
+
+        on_wrong {
+            print("Incorrect answer, try again")
+        }
+
     guardian_quiz:
         type: multiple_choice
         question: "Which are programming languages?"
@@ -519,6 +1161,11 @@ quizzes:
         correct_answers: [0, 2, 4]  # Python, Java, JavaScript
         reward: wisdom_scroll
         attached_to: guardian
+
+        on_correct {
+            score += 200
+            show_message("Wisdom granted!")
+        }
 ```
 
 ---
@@ -540,6 +1187,14 @@ npcs:
         damage: 1                         # Damage dealt by hostile mobs (optional, default: 1)
         dialogue:                         # Dialogue tree (optional, only for non-hostile NPCs)
             default_text: "String"        # Default dialogue text
+
+        # Event Handlers (TIER 3 - optional)
+        on_interact {                     # Executed when player interacts with NPC
+            # statements
+        }
+        on_death {                        # Executed when NPC/monster dies
+            # statements
+        }
 ```
 
 **Combat System:**
@@ -562,6 +1217,11 @@ npcs:
         dialogue:
             default_text: "Solve my riddle to pass..."
 
+        on_interact {
+            show_message("I have stood guard for centuries...")
+            questStarted = true
+        }
+
     skeleton_warrior:
         description: "A hostile skeleton"
         texture: "character/monster/skeleton"
@@ -570,13 +1230,30 @@ npcs:
         health: 15
         damage: 2
 
-    goblin:
-        description: "A sneaky goblin"
-        texture: "character/monster/goblin"
-        location: cave
+        on_death {
+            score += 150
+            monstersKilled += 1
+            show_message("Skeleton defeated!")
+
+            if (monstersKilled >= 5) {
+                give_item("warrior_badge")
+            }
+        }
+
+    boss_dragon:
+        description: "The final boss dragon"
+        texture: "character/monster/dragon"
+        location: boss_room
         hostile: true
-        health: 10
-        damage: 1
+        health: 100
+        damage: 10
+
+        on_death {
+            score += 1000
+            bossDefeated = true
+            unlock("exit_room")
+            victory("Dragon slain! You win!")
+        }
 ```
 
 **Note:**
@@ -662,7 +1339,292 @@ player:
 
 ## Examples
 
-### Complete Example: Multi-Room Escape Room
+### Complete Example with Full Programming Features (TIER 1-3)
+
+This example showcases all the advanced programming features including variables, expressions, event handlers, triggers, conditionals, and loops:
+
+```dsl
+escape_room:
+
+    metadata:
+        title: "The Dynamic Dungeon"
+        description: "A fully dynamic escape room with complex logic"
+        difficulty: "normal"
+        max_time: 60
+        fog_of_war: false
+
+    # =============================================================================
+    # TIER 1: Variables - Global state management
+    # =============================================================================
+    variables:
+        score: 0
+        keysCollected: 0
+        totalKeys: 3
+        monstersKilled: 0
+        bossDefeated: false
+        secretFound: false
+
+        # Expression-based initialization
+        maxHealth: 100
+        startingGold: 50 + 25          # 75
+
+    # =============================================================================
+    # TIER 3: Triggers - Global win/lose conditions
+    # =============================================================================
+    triggers:
+        # Victory condition
+        when (keysCollected >= totalKeys && bossDefeated) {
+            unlock("exit_room")
+            victory("You collected all keys and defeated the boss!")
+        }
+
+        # Secret achievement
+        when (secretFound && score >= 1000) {
+            give_item("legendary_sword")
+            show_message("Legendary sword unlocked!")
+        }
+
+        # Combat milestone
+        when (monstersKilled >= 10) {
+            show_message("Warrior badge earned!")
+            score += 500
+        }
+
+    # =============================================================================
+    # Rooms with Event Handlers
+    # =============================================================================
+    rooms:
+        entrance:
+            description: "The dungeon entrance"
+            x: 0
+            y: 0
+            width: 10
+            height: 8
+            items: [bronze_key]
+            connections: [main_hall]
+
+            # TIER 3: Event handlers
+            on_first_enter {
+                show_message("Welcome to the Dynamic Dungeon!")
+                score += 10
+            }
+
+            on_enter {
+                # TIER 2: Conditional logic
+                if (keysCollected > 0) {
+                    show_message("Keys collected: " + keysCollected + "/" + totalKeys)
+                } else {
+                    show_message("Find keys to unlock the treasure room!")
+                }
+            }
+
+        main_hall:
+            description: "The main hall with enemies"
+            x: 12
+            y: 0
+            width: 15
+            height: 12
+            npcs: [skeleton1, skeleton2, skeleton3]
+            items: [silver_key]
+            connections: [entrance, treasure_room, boss_room]
+
+            on_enter {
+                print("Entered main hall. Score: ", score)
+            }
+
+            on_clear {
+                show_message("Main hall cleared! Bonus score!")
+                score += 200
+                unlock("treasure_room")
+            }
+
+        treasure_room:
+            description: "A room filled with gold"
+            x: 29
+            y: 0
+            width: 10
+            height: 10
+            connections: [main_hall]
+            locked_by: bronze_key
+
+            on_first_enter {
+                # TIER 2: Loop - spawn multiple treasures
+                repeat 5 {
+                    print("Spawning treasure pile...")
+                }
+                score += 500
+                show_message("Treasure room bonus: +500 points!")
+            }
+
+            on_enter {
+                if (score < 1000) {
+                    show_message("Current score: " + score)
+                } else {
+                    show_message("High score achieved!")
+                    secretFound = true
+                }
+            }
+
+        boss_room:
+            description: "The final boss arena"
+            x: 12
+            y: 14
+            width: 12
+            height: 12
+            npcs: [boss_dragon]
+            connections: [main_hall]
+            locked_by: silver_key
+
+            on_enter {
+                show_message("Prepare for battle!")
+            }
+
+        exit_room:
+            description: "The exit"
+            x: 42
+            y: 0
+            width: 8
+            height: 8
+            connections: [treasure_room]
+
+            on_enter {
+                victory("You escaped! Final score: " + score)
+            }
+
+    # =============================================================================
+    # Items with Event Handlers
+    # =============================================================================
+    items:
+        bronze_key:
+            description: "A bronze key"
+            type: "key"
+            texture: "items/key/small_key.png"
+
+            on_pickup {
+                keysCollected += 1
+                score += 50
+                show_message("Bronze key acquired! (" + keysCollected + "/" + totalKeys + ")")
+            }
+
+        silver_key:
+            description: "A silver key"
+            type: "key"
+            texture: "items/key/big_key.png"
+
+            on_pickup {
+                keysCollected += 1
+                score += 100
+
+                if (keysCollected >= 2) {
+                    show_message("Almost there! Find one more key")
+                } else {
+                    show_message("Silver key found!")
+                }
+            }
+
+        golden_key:
+            description: "A golden key"
+            type: "key"
+            texture: "items/key/big_key.png"
+
+            on_pickup {
+                keysCollected += 1
+                score += 150
+                show_message("All keys collected!")
+            }
+
+        health_potion:
+            description: "Restores health"
+            type: "consumable"
+            texture: "items/potion"
+
+            on_use {
+                heal_player(50)
+                remove_item("health_potion")
+                show_message("Healed 50 HP!")
+            }
+
+    # =============================================================================
+    # NPCs with Combat and Event Handlers
+    # =============================================================================
+    npcs:
+        skeleton1:
+            description: "A skeleton warrior"
+            texture: "character/monster/skeleton"
+            location: main_hall
+            hostile: true
+            health: 15
+            damage: 2
+
+            on_death {
+                monstersKilled += 1
+                score += 50
+                print("Skeleton defeated! Total: ", monstersKilled)
+
+                # TIER 2: Conditional item drop
+                if (monstersKilled >= 5) {
+                    give_item("health_potion")
+                    show_message("Health potion dropped!")
+                }
+            }
+
+        skeleton2:
+            description: "A skeleton warrior"
+            texture: "character/monster/skeleton"
+            location: main_hall
+            hostile: true
+            health: 15
+            damage: 2
+
+            on_death {
+                monstersKilled += 1
+                score += 50
+            }
+
+        skeleton3:
+            description: "A skeleton warrior"
+            texture: "character/monster/skeleton"
+            location: main_hall
+            hostile: true
+            health: 15
+            damage: 2
+
+            on_death {
+                monstersKilled += 1
+                score += 50
+            }
+
+        boss_dragon:
+            description: "The mighty dragon boss"
+            texture: "character/monster/dragon"
+            location: boss_room
+            hostile: true
+            health: 100
+            damage: 10
+
+            on_death {
+                bossDefeated = true
+                score += 1000
+                give_item("golden_key")
+                show_message("Dragon defeated! Golden key obtained!")
+            }
+
+    # =============================================================================
+    # Player Configuration
+    # =============================================================================
+    player:
+        class: wizard
+        start_x: 5
+        start_y: 4
+        health: 50
+        mana: 150
+```
+
+---
+
+### Multi-Room Example (Classic Style)
+
+This example demonstrates a classic multi-room escape room without advanced programming features:
 
 ```dsl
 escape_room:
@@ -839,6 +1801,46 @@ escape_room:
 
 ## Best Practices
 
+### Variables & State Management (TIER 1)
+
+1. **Initialize Clearly**: Always initialize variables with meaningful values
+2. **Descriptive Names**: Use names like `keysCollected`, not `kc` or `x`
+3. **Type Consistency**: Don't mix types (e.g., don't assign string to a number variable)
+4. **Track Progress**: Use variables for scoring, quest progress, achievements
+5. **Boolean Flags**: Use boolean variables for binary states (`secretFound`, `bossDefeated`)
+
+### Event Handlers (TIER 3)
+
+1. **Keep Logic Simple**: Event handlers should be focused and concise
+2. **Use Comments**: Explain complex logic within handlers
+3. **Avoid Recursion**: Don't call events that trigger themselves
+4. **Test Incrementally**: Add one handler at a time and test
+5. **Print Debug Info**: Use `print()` statements to track execution flow
+
+### Triggers (TIER 3)
+
+1. **Clear Conditions**: Make trigger conditions easy to understand
+2. **Avoid Overlapping**: Don't create triggers with conflicting conditions
+3. **One-Shot Logic**: Remember triggers fire once when condition becomes true
+4. **Victory Conditions**: Use triggers for win/lose conditions
+5. **Milestone Tracking**: Track achievements and quest progression
+
+### Control Flow (TIER 2)
+
+1. **Indent Properly**: Use consistent 2-space or 4-space indentation
+2. **Braces Required**: Always use `{ }` for if/else/repeat blocks
+3. **Test Conditions**: Verify conditions work before adding complex logic
+4. **Loop Bounds**: Be careful with loop counts to avoid performance issues
+5. **Nested Loops**: Limit nesting depth for readability (max 2-3 levels)
+
+### Expressions
+
+1. **Use Parentheses**: Make complex expressions clear with `(a + b) * c`
+2. **Test Math**: Verify arithmetic operations work as expected
+3. **String Concatenation**: Test message formatting before deployment
+4. **Property Access**: Ensure properties exist before accessing them
+5. **Function Calls**: Check function return types match expectations
+
 ### Room Design
 
 1. **Start Small**: Begin with 2-3 rooms and expand
@@ -846,6 +1848,7 @@ escape_room:
 3. **Spacing**: Leave gaps between rooms for corridors (minimum 2-3 tiles)
 4. **Size**: Typical room dimensions: 8x8 to 15x15 tiles
 5. **Key Placement**: Always put required keys in accessible rooms (not behind locked doors)
+6. **Event Testing**: Test room events (on_enter, on_exit) thoroughly
 
 ### Camera Settings
 
@@ -889,6 +1892,62 @@ escape_room:
 ## Troubleshooting
 
 ### Common Issues
+
+**Problem:** Variables not updating  
+**Solution:**
+
+-   Check variable is defined in `variables:` section
+-   Verify assignment operators: `=`, `+=`, `-=`, `*=`, `/=`
+-   Ensure variable names match exactly (case-sensitive)
+-   Use `print()` to debug variable values
+
+**Problem:** Event handler not executing  
+**Solution:**
+
+-   Verify event handler syntax: `on_enter { ... }` with braces
+-   Check indentation is consistent (2 spaces)
+-   Ensure event type is valid for entity (e.g., rooms don't have `on_pickup`)
+-   Use `print()` statements to confirm handler execution
+
+**Problem:** Trigger never fires  
+**Solution:**
+
+-   Check condition is written correctly with proper operators
+-   Verify variables in condition are initialized
+-   Remember triggers only fire once when condition becomes true
+-   Test condition manually with if statements first
+
+**Problem:** If/else statement not working  
+**Solution:**
+
+-   Ensure condition is in parentheses: `if (condition) { ... }`
+-   Check braces `{ }` are used for both blocks
+-   Verify comparison operators: `==` not `=` for equality
+-   Test condition with `print()` to see actual value
+
+**Problem:** Loop not executing  
+**Solution:**
+
+-   For `repeat 3 { ... }`: Use literal number, not variable
+-   For `repeat i from 1 to 5 { ... }`: Verify start < end
+-   Check loop body is in braces `{ }`
+-   Ensure no infinite loops (max iterations capped internally)
+
+**Problem:** Expression evaluation error  
+**Solution:**
+
+-   Check operator precedence with parentheses
+-   Verify types match (don't add number + boolean)
+-   Test sub-expressions separately
+-   Use `print()` to see intermediate results
+
+**Problem:** Function call not working  
+**Solution:**
+
+-   Check function name is spelled correctly
+-   Verify correct number of arguments
+-   Ensure arguments are correct types
+-   See Built-in Functions section for full list
 
 **Problem:** Doors don't appear or can't be interacted with  
 **Solution:**
@@ -1347,6 +2406,101 @@ quiz_id:
 3. Create quiz entity or attach to NPC
 4. Display quiz UI when player interacts (E key)
 5. Check answer correctness when submitted
+6. Execute `onSuccess` callback if correct (TIER 3: also executes on_correct handler)
+7. `giveRewardToPlayer()` creates item and adds to inventory
+8. Reward items skipped during map item spawning
+
+**QuizInteractionHandler:**
+
+-   Manages quiz UI display and interaction
+-   Calls `onSuccess.run()` callback when quiz completed successfully
+-   Executes quiz event handlers (`on_correct`, `on_wrong`)
+-   Handles both single-choice and multiple-choice quiz types
+
+### DSL Runtime (TIER 1-3)
+
+**Variable System:**
+
+-   Global variables stored in `Map<String, Object>`
+-   Supports numbers (Integer, Double), strings, booleans
+-   Scope stack for loop variables (`Deque<Map<String, Object>>`)
+-   Variable lookup searches from inner to outer scopes
+
+**Expression Evaluation:**
+
+-   AST-based recursive evaluation
+-   Operator precedence handled by grammar rule ordering
+-   Type checking at runtime
+-   Property access via reflection (`player.health`)
+-   Function dispatch to 30+ built-in functions
+
+**Statement Execution:**
+
+-   Assignment statements modify variables
+-   If/else with nested condition support
+-   Repeat loops with optional loop variables
+-   Function call statements for built-in functions
+
+**Event System:**
+
+-   Event types: ON_ENTER, ON_EXIT, ON_FIRST_ENTER, ON_CLEAR, ON_PICKUP, ON_USE, ON_DROP, ON_INTERACT, ON_DEATH, ON_CORRECT, ON_WRONG
+-   Event handlers registered per entity + event type
+-   Fired via `DSLRuntime.fireEvent(EventType, String entityId)`
+-   Multiple handlers can be registered for same event
+
+**Trigger System:**
+
+-   Triggers checked after every event
+-   Condition evaluated as expression (must return boolean)
+-   Trigger fires once when condition becomes true
+-   Tracked via `firedTriggers` set to prevent re-firing
+
+---
+
+## Version History
+
+### Version 2.0 (January 2026)
+
+**Revolutionary Update - Full Programming Language:**
+
+**Core Language Features:**
+
+-   Variables with expression-based initialization
+-   Full expression system with 30+ operators and functions
+-   If/else statements with unlimited chaining
+-   Repeat loops (simple and range-based with loop variables)
+-   Event handlers for rooms, items, NPCs, quizzes
+-   Global triggers with automatic condition checking
+-   30+ built-in functions for game control
+-   Proper operator precedence and type system
+-   Scoped variables in loops
+
+**Technical Implementation:**
+
+-   ANTLR-based parser with TIER 1-3 grammar
+-   AST (Abstract Syntax Tree) for expressions and statements
+-   Visitor pattern for parse tree → AST conversion
+-   Runtime with variable scopes and event dispatch
+-   Expression evaluator with recursive evaluation
+-   Statement executor for control flow
+
+**Known Limitations:**
+
+-   `repeat N { ... }` requires literal number, not variable (use range repeat for dynamic counts)
+-   No user-defined functions (only built-in functions available)
+-   No arrays or data structures beyond simple variables
+-   Room coordinate overlap not validated (rooms can overwrite each other)
+-   Event handlers cannot be defined dynamically at runtime
+
+### Version 1.1 (October 26, 2025)
+
+**Quiz Flow:**
+
+1. Parse quiz definition from DSL (type, question, answers, correct_answers, reward)
+2. Validate reward item exists in items section
+3. Create quiz entity or attach to NPC
+4. Display quiz UI when player interacts (E key)
+5. Check answer correctness when submitted
 6. Execute `onSuccess` callback if correct
 7. `giveRewardToPlayer()` creates item and adds to inventory
 8. Reward items skipped during map item spawning
@@ -1404,127 +2558,15 @@ Common texture locations:
 ### Getting Help
 
 1. Check this documentation
-2. Review `demo_room.esc` example
+2. Review example files: `escapeRoom/src/demoDungeon/level/dynamic_test.esc` (TIER 1-3 features) or `complete_showcase.esc`
 3. Check console output for parsing errors
 4. Verify all IDs are unique and referenced correctly
-
----
-
-**End of Documentation**### Items
-
-Interactive objects players can collect and use:
-
-```dsl
-items:
-    ancient_scroll:
-        description: "An old scroll with mysterious writing"
-        type: "key" | "tool" | "document" | "decoration"
-        texture: "items/book/book"           # Asset path
-        location: entrance_hall              # Starting room
-        visible: true                        # Can be seen/found
-        readable: true                       # Can be read
-        content: "Text content if readable"  # Text shown when read
-        properties:                          # Custom properties
----
-
-## Version History
-
-### Version 1.0 (Current - 2025)
-
-**Major Features:**
-
-**Level Design:**
-- Multi-room layouts with dynamic corridor generation
-- Custom room shapes using ASCII art patterns (#=wall, .=floor)
-- Flexible room connections (north, south, east, west)
-- Automatic door placement with smart wall detection
-- Locked doors with key-based unlocking system
-
-**Combat System:**
-- Hostile NPCs with health and damage stats
-- Player combat with skill casting (Q key or mouse)
-- AI behaviors: RandomFightAI (chase/melee/ranged), RandomIdleAI (patrol)
-- SelfDefendTransition AI (mobs attack when damaged)
-- Health system with death mechanics for both player and mobs
-- Resource management: Mana regeneration (10/tick) and stamina regeneration
-
-**Player System:**
-- Character class selection: Wizard (15 HP, 100 mana, fireball/heal) or Hunter (35 HP, 120 stamina, bow/dash)
-- Skill casting via Q key or mouse click
-- Custom spawn point per room
-- Full keyboard + mouse controls (WASD movement, E for interaction)
-
-**Items & Inventory:**
-- Multiple item types: keys, scrolls (documents), decorations
-- Full inventory system with add/remove/query
-- Readable items with custom content display
-- Smart item spawning (quiz rewards don't spawn on map)
-
-**Quiz & Reward System:**
-- Single-choice and multiple-choice quiz types
-- Quiz attachment to NPCs or standalone items
-- Reward validation (must reference defined items)
-- Direct-to-inventory reward delivery
-- Completion tracking and success callbacks
-
-**NPC System:**
-- Hostile NPCs with combat capabilities
-- Friendly NPCs with dialogue
-- Proper animation rendering for both types
-- Room-based spawning system
-- Configurable stats (health, damage) per NPC
-
-**Technical:**
-- ANTLR-based DSL parser with comprehensive error checking
-- Validation system: unique IDs, valid references, reward validation
-- Dynamic level generation from DSL definitions
-- Entity spawning system with texture/animation loading
-- Game systems: Input, AI, Health, Projectile, Resource regeneration
-- Readable items (scrolls, books)
-- Automatic door placement with walls
-
-**Known Limitations:**
-
-The following features are not yet supported but could be added in future versions:
-
-- **Conditional Logic**: No variables or if/else logic in DSL
-- **Timer Events**: No time-based triggers or scheduled events
-- **Save/Load System**: No persistent game state between sessions
-- **Win Conditions**: No built-in victory/objective system (must use quiz completion or item collection)
-- **Event Triggers**: No room entry/exit triggers or scripted events
-- **Loot Drops**: Hostile mobs don't drop items when defeated
-- **Animation Sequences**: Doors don't have opening/closing animations
-- **Dialogue Trees**: NPCs support only single default text, no branching conversations
-- **Dynamic Difficulty**: No scaling based on player progress
-- **Minimap**: No map overview system
-
----
-
-## Support & Resources
-
-### Example Files
-
-See `escapeRoom/src/demoDungeon/level/demo_room.esc` for a complete working example.
-
-### Texture Paths
-
-Common texture locations:
-
-- **Characters**: `character/knight`, `character/wizard/wizard`
-- **Monsters**: `character/monster/chort`
-- **Keys**: `items/key/small_key.png`, `items/key/big_key.png`
-- **Books**: `items/book/book`
-- **Doors**: `dungeon/default/door/[direction].png`
-- **Walls**: `dungeon/default/wall/side.png`
-
-### Getting Help
-
-1. Check this documentation
-2. Review `demo_room.esc` example
-3. Check console output for parsing errors
-4. Verify all IDs are unique and referenced correctly
+5. Use `print()` statements for debugging variable values and execution flow
 
 ---
 
 **End of Documentation**
+
+```
+
 ```
